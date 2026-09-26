@@ -48,7 +48,7 @@ export const sampPackets = [
   {
     id: 'paket-basic',
     name: 'Basic',
-    price: 5000,
+    price: 2000,
     status: 'available',
     tagline: 'Paket paling ringan.',
     features: [

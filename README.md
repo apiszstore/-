@@ -101,25 +101,53 @@ modal detail. Status memakai nilai yang sama seperti di atas.
 
 ### 4. Testimonial
 
-`src/data/testimonials.js`. Data contoh memakai `demo: true` dan ditampilkan
-dengan badge **Demo**, plus rating kosong (tidak ada bintang palsu).
+`src/data/testimonials.js`. Setiap entri punya:
 
-Untuk menambah review asli: salin satu objek, ubah `demo: false`, isi `name`,
-`username`, dan `rating` (angka 1–5) dengan data asli. Setelah ada review
-asli, hapus seluruh entri demo. Section otomatis menyesuaikan judulnya
-(`hasRealTestimonials`).
+| Field | Isi | Contoh |
+| --- | --- | --- |
+| `name` | nama customer | `"Budi Santoso"` |
+| `tag` | label di bawah nama | `"Verified Buyer"` |
+| `username` | handle (opsional) | `"@budi"` |
+| `product` | produk/jasa yang dipakai | `"Discord Server Setup"` |
+| `rating` | bintang 1–5 | `5` |
+| `date` | tanggal `YYYY-MM-DD` | `"2026-01-15"` |
+| `text` | komentar | `"..."` |
+| `demo` | `true` = contoh, bukan review asli | `false` |
+
+Tanggal dirender dalam format Indonesia ("15 Januari 2026") memakai
+helper `formatDate()` di `src/lib/format.js`.
+
+Untuk menambah review asli: salin satu objek, ubah `demo: false`, isi semua
+field dengan data asli. Setelah ada review asli, **hapus seluruh entri demo**.
+Section otomatis menyesuaikan judulnya lewat `hasRealTestimonials`.
+
+`rating` dan `date` wajib diisi untuk entri non-demo. Kalau kosong, frontend
+sembunyikan barisnya supaya tidak ada bintang atau tanggal yang terasa karangan.
 
 ### 5. Showcase
 
-`src/data/showcase.js`. Tempel path foto ke `image`.filtrationScreenshot
-disimpan di `public/`. Selama `image` kosong, kartu tampil sebagai placeholder
+`src/data/showcase.js`. Tempel path foto ke `image` dan simpan fotonya di
+`public/`. Selama `image` kosong, kartu tampil sebagai placeholder
 "— screenshot belum tersedia —" dan tidak menciptakan kesan palsu.
 
 ### 6. Payment
 
-`src/components/Payment.jsx` **sengaja tidak menampilkan nomor DANA/GoPay
-maupun QR code**. Filling detail ada di `src/config/site.js` (`contact`).
-Tambahkan nomor hanya setelah benar-benar siap menerima order.
+`src/data/payment.js` + folder **`public/payment/`** (sudah dibuat, tinggal diisi).
+
+Letakkan file dengan nama persis:
+
+```
+public/payment/dana.png
+public/payment/gopay.png
+public/payment/qris.png
+```
+
+Saran: kotak 200×200 px (rasio 1:1), PNG/SVG, latar transparan.
+Kalau file belum ada, section otomatis menampilkan nama metode sebagai teks
+(DANA / GoPay / QRIS) — tidak muncul gambar rusak.
+
+Tidak ada nomor telepon, ID, atau QR code di data ini. Nominal dikirim lewat
+proses order di Discord.
 
 ### 7. Warna, font, dan gaya
 
@@ -153,8 +181,26 @@ Font: **Sora** (judul), **Plus Jakarta Sans** (body), **JetBrains Mono** (angka/
 Radius kecil `10px` — tampilan Discord, bukan pill besar.
 Status punya warna sendiri-sendiri; hanya `custom` yang ungu, itu disengaja.
 
-Animasi memakai `animate-rise` / `animate-fade` dan otomatis dimatikan kalau
-pengguna mengaktifkan *reduced motion*.
+Animasi memakai `Reveal` (opacity + translateY + scale tipis). Sengaja
+**tidak** memakai blur atau `backdrop-filter` — efek seperti itu bikin
+halaman terasa berat. Semua animasi dimatikan otomatis kalau pengguna
+mengaktifkan *reduced motion*, dan konten tetap tampil kalau
+`IntersectionObserver` tidak tersedia.
+
+### Fokus posisi saat scroll
+
+Dua penanda posisi supaya user selalu tahu dia sedang di bagian mana:
+
+| Fitur | Letak | Sumber |
+| --- | --- | --- |
+| Progress bar orange | tepi bawah navbar, 0–100% | `useScrollPosition()` |
+| Garis aksen orange | sisi atas section yang sedang aktif | `useScrollPosition()` + `Section.jsx` |
+| Menu aktif orange | navbar desktop & mobile | scroll-spy di `Navbar.jsx` |
+
+Selain itu, tiap kartu masuk viewport satu per satu (`Reveal`) dengan
+urutan sedikit delay, jadi halaman terasa hidup saat digulir.
+`useScrollPosition()` mengembalikan `{ progress, activeId }` dan dipakai
+bersama oleh navbar dan setiap `Section`.
 
 ---
 
@@ -172,9 +218,9 @@ Navigasi bisa juga dibuka langsung lewat hash, misal
 
 - [ ] `discord` di `src/config/site.js` diganti invite asli
 - [ ] `social` (TikTok / WhatsApp) diisi, atau dibiarkan placeholder
-- [ ] Nomor pembayaran diisi di `src/components/Payment.jsx`
+- [ ] Logo `dana.png`, `gopay.png`, `qris.png` ditaruh di `public/payment/`
 - [ ] `src/data/products.js` diisi produk asli (hapus array kosong)
-- [ ] Testimonial demo diganti review asli
+- [ ] Testimonial demo diganti review asli (lalu hapus entri demo)
 - [ ] Screenshot showcase ditempel ke `public/`
 - [ ] Harga dan `status` setiap layanan sudah dikonfirmasi
 - [ ] `npm run build` dan `npm run verify` lolos

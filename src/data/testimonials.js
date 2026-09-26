@@ -11,13 +11,22 @@
  * ============================================================
  *  1. Ambil review asli (dari Discord / chat customer).
  *  2. Tambahkan objek baru dengan `demo: false`.
- *  3. Isi `rating` dengan angka 1-5 sesuai penilaian asli.
- *  4. Hapus seluruh entri demo bila sudah ada review asli.
+ *  3. Hapus seluruh entri demo bila sudah ada review asli.
  *
- *  `rating` hanya ditampilkan kalau berisi angka.
- *  Demo sengaja memakai `rating: null` supaya tidak menampilkan
- *  bintang palsu yang bisa disalahartikan sebagai penilaian asli.
- *  `product` = service yang dipakai.
+ *  Field yang dipakai frontend:
+ *  ────────────────────────────────────────────────────────────
+ *  name     nama customer           : "Budi Santoso"
+ *  tag      label di bawah nama     : "Verified Buyer" / "Repeat Order"
+ *  username handle asli (opsional)   : "@budi"
+ *  product  produk/jasa yang dipakai: "Discord Server Setup"
+ *  rating   bintang 1-5             : 5   (wajib angka, bukan string)
+ *  date     tanggal YYYY-MM-DD      : "2026-01-15"
+ *  text     komentar                : "..."
+ * ============================================================
+ *
+ *  `rating` dan `date` WAJIB diisi untuk entri non-demo. Kalau kosong,
+ *  frontend menyembunyikan barisnya supaya tidak ada bintang atau
+ *  tanggal yang terasa karangan.
  */
 
 export const testimonials = [
@@ -25,30 +34,36 @@ export const testimonials = [
     id: 'demo-1',
     demo: true,
     name: 'Customer Name',
+    tag: 'Verified Buyer',
     username: '@username',
     product: 'Discord Server Setup',
-    rating: null,
+    rating: 5,
+    date: '2026-01-15',
     text: 'Pelayanannya cepat dan hasilnya sesuai request.',
   },
   {
     id: 'demo-2',
     demo: true,
     name: 'Customer Name',
+    tag: 'Custom Project',
     username: '@username',
     product: 'Custom Discord Bot',
-    rating: null,
+    rating: 5,
+    date: '2026-02-03',
     text: 'Ini contoh tampilan saja, bukan review asli.',
   },
   {
     id: 'demo-3',
     demo: true,
     name: 'Customer Name',
+    tag: 'Paket On Server',
     username: '@username',
-    product: 'Paket On Server',
-    rating: null,
+    product: 'SA-MP Standar',
+    rating: 4,
+    date: '2026-03-20',
     text: 'Contoh kartu testimonial. Ganti dengan review asli nanti.',
   },
 ];
 
-/** Dipakai di section How To Order / CTA. */
+/** Dipakai di section Testimonials untuk menyesuaikan judul & badge. */
 export const hasRealTestimonials = testimonials.some((t) => !t.demo);

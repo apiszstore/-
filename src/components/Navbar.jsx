@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react';
 import { navItems, siteConfig } from '../config/site.js';
 import { scrollToSection } from '../lib/scroll.js';
 import { useOrder } from '../hooks/useOrder.js';
+import { useScrollPosition } from '../hooks/useScrollPosition.js';
 import Button from './Button.jsx';
 import Icon from './Icon.jsx';
 import Logo from './Logo.jsx';
+
+const SECTION_IDS = navItems.map((item) => item.id);
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeId, setActiveId] = useState(navItems[0].id);
   const order = useOrder();
+  const { progress } = useScrollPosition(SECTION_IDS);
 
   useEffect(() => {
     const onScroll = () => {
@@ -178,6 +182,21 @@ export default function Navbar() {
             {siteConfig.order.label}
           </Button>
         </div>
+      </div>
+
+      {/* Progress bar: menunjukkan posisi user di seluruh halaman. */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-0.5 bg-transparent"
+        role="progressbar"
+        aria-label="Kemajuan halaman"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(progress * 100)}
+      >
+        <div
+          className="h-full origin-left bg-brand transition-transform duration-150 ease-out"
+          style={{ transform: `scaleX(${progress})` }}
+        />
       </div>
     </header>
   );
