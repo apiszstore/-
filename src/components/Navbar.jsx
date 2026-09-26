@@ -79,11 +79,11 @@ export default function Navbar() {
           : 'border-transparent bg-raised/55 backdrop-blur-md'
       }`}
     >
-      <div className="container-page flex h-16 items-center justify-between gap-4 sm:h-[72px]">
+      <div className="container-page flex h-[72px] items-center justify-between gap-4 sm:h-20">
         <button
           type="button"
           onClick={() => go('home')}
-          className="flex min-h-10 shrink-0 items-center rounded-md px-1 py-1"
+          className="flex min-h-11 shrink-0 items-center rounded-md px-1"
           aria-label="Kembali ke atas"
         >
           <Logo size="sm" />
@@ -139,7 +139,7 @@ export default function Navbar() {
       <div
         id="mobile-menu"
         className={`overflow-hidden border-line bg-raised transition-[max-height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${
-          menuOpen ? 'max-h-[calc(100dvh-4rem)] border-t opacity-100' : 'max-h-0 opacity-0'
+          menuOpen ? 'max-h-[calc(100dvh-4.5rem)] sm:max-h-[calc(100dvh-5rem)] border-t opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
         <div className="container-page max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain py-4">

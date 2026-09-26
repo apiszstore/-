@@ -1,4 +1,4 @@
-# APISZ STORE
+﻿# APISZ STORE
 
 Landing page untuk **APISZ STORE** — layanan Digital Service (Discord, Custom Bot),
 SA-MP, Website, Mapping, dan Streamer.
@@ -180,9 +180,21 @@ Kalau nama file atau ukuran logomu berubah, sesuaikan `logoWidth` /
 benar sebelum gambar selesai dimuat, supaya navbar tidak melompat.
 Format jpg/webp/svg juga bisa selama path di config ikut diubah.
 
-Logo 223×100 itu rasio lebar (2.23:1), jadi komponen Logo memensatz
-dari **tinggi** (`width: auto`), bukan memaksa kotak. Dipaksa kotak,
+Logo 223×100 itu rasio lebar (2.23:1), jadi komponen Logo memakai
+tinggi gambar dengan `width: auto`, bukan memaksa kotak. Dipaksa kotak,
 logomu akan tampil kecil dengan ruang kosong di atas dan bawah.
+
+Ukuran logo (kelas Tailwind di `SIZES` pada `Logo.jsx`):
+
+| Pemakaian | Mobile | Desktop |
+| --- | --- | --- |
+| Navbar (`sm`) | 36px | 44px |
+| Footer (`md`) | 48px | 48px |
+
+Navbar sengaja ikut dinaikkan (72px mobile / 80px desktop) supaya logo
+sebesar ini tidak terpotong. Kalau menaikkan `SIZES` lagi, navbar harus
+ikut naik — dan tinggi tombol logo harus tetap ≥ 40px agar target
+sentuh lolos WCAG 2.5.8.
 
 **Fallback aman.** Kalau file belum ada:
 - logo → otomatis pakai wordmark teks "APISZ STORE"
