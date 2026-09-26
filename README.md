@@ -155,9 +155,11 @@ Semua branding dikendalikan dari satu tempat di `src/config/site.js`:
 
 ```js
 brand: {
-  logo: '/brand/logo.png',      // logo di samping nama store
+  logo: '/brand/logo.png',      // logo di store
   logoAlt: 'Logo APISZ STORE',
-  showName: true,              // false = logo berdiri sendiri, teks disembunyikan
+  showName: false,             // false = logo saja, teks disembunyikan
+  logoWidth: 223,              // ukuran asli file (untuk anti layout-shift)
+  logoHeight: 100,
   favicon: '/brand/favicon.png',
 },
 ```
@@ -166,18 +168,28 @@ Letakkan file-nya di **`public/brand/`**:
 
 | File | Saran ukuran |
 | --- | --- |
-| `logo.png` | tinggi 60–120 px, rasio bebas, latar transparan |
+| `logo.png` | **223×100 px**, latar transparan (PNG) |
 | `favicon.png` | 32×32 atau 48×48 px, kotak, tidak transparan |
 
-Kalau nama file kamu berbeda, cukup ubah path di config. Format
-jpg/webp/svg juga bisa.
+`showName: false` dipakai karena logomu sudah berupa wordmark lengkap,
+jadi teks "APISZ STORE" tidak perlu diulang. Setel `true` kalau suatu saat
+mau teksnya muncul lagi.
+
+Kalau nama file atau ukuran logomu berubah, sesuaikan `logoWidth` /
+`logoHeight` — dua angka itu dipakai browser untuk menyisakan ruang yang
+benar sebelum gambar selesai dimuat, supaya navbar tidak melompat.
+Format jpg/webp/svg juga bisa selama path di config ikut diubah.
+
+Logo 223×100 itu rasio lebar (2.23:1), jadi komponen Logo memensatz
+dari **tinggi** (`width: auto`), bukan memaksa kotak. Dipaksa kotak,
+logomu akan tampil kecil dengan ruang kosong di atas dan bawah.
 
 **Fallback aman.** Kalau file belum ada:
 - logo → otomatis pakai wordmark teks "APISZ STORE"
 - favicon → otomatis pakai icon bawaan `public/favicon.svg`
 
-Jadi mengunggah gambar Half jadi tidak merusak tampilan. Favicon dicek
-dengan HEAD request **plus** verifikasi `content-type`|image/*`, karena
+Jadi mengunggah file Half jadi tidak merusak tampilan. Favicon dicek
+dengan HEAD request **plus** verifikasi `content-type` `image/*`, karena
 Vite dev server menjawab HTTP 200 dengan `index.html` untuk path yang
 tidak ada — kalau cuma cek status, favicon akan tertukar ke file bogus.
 

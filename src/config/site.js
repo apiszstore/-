@@ -53,8 +53,18 @@ export const siteConfig = {
     logo: '/brand/logo.png',
     /** Dipakai sebagai alt kalau teks nama disembunyikan. */
     logoAlt: 'Logo APISZ STORE',
-    /** Tampilkan nama store di sebelah logo. */
-    showName: true,
+    /** false = pakai logo saja, teks "APISZ STORE" disembunyikan. */
+    showName: false,
+    /**
+     * Ukuran asli file logo (223x100).
+     *
+     * PENTING: isi sesuai file yang kamu unggah. Nilai ini dipakai
+     * browser untuk menyisakan ruang yang benar sebelum gambar selesai
+     * dimuat, jadi navbar tidak melompat (layout shift) begitu logo
+     * muncul. Mengubahnya aman kalau logo diganti dengan ukuran lain.
+     */
+    logoWidth: 223,
+    logoHeight: 100,
     /** Favicon. File PNG paling aman (32x32 atau 48x48). */
     favicon: '/brand/favicon.png',
   },

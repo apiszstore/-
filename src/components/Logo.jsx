@@ -2,25 +2,33 @@ import { useState } from 'react';
 import { siteConfig } from '../config/site.js';
 
 /**
- * Logo: gambar (kalau ada) + wordmark "APISZ STORE".
+ * Logo store.
  *
- * Sumber gambar diambil dari `siteConfig.brand.logo`. Kalau file-nya
- * belum ada atau gagal dimuat, komponen ini otomatis kembali ke
- * wordmark teks supaya tidak pernah tampil bolong.
+ * Sumber gambar: `siteConfig.brand.logo`.
+ * - `showName: false` → logo berdiri sendiri, teks "APISZ STORE" disembunyikan.
+ * - `showName: true`  → teks tetap tampil di sebelah logo.
+ * - File belum ada / gagal dimuat → otomatis balik ke wordmark teks,
+ *   supaya tidak pernah tampil bolong.
  *
- * `showName: false` di config akan menyembunyikan teksnya, jadi logo
- * berdiri sendiri. Dalam kasus itu gambar memakai alt yang bisa dibaca
- * screen reader.
+ * Logo 223x100 itu rasio lebar (2.23:1), jadi pensizean memakai TINGGI
+ * dengan `width: auto`. Kalau dipaksakan kotak, logo jadi kecil dengan
+ * ruang kosong di atas dan bawah.
+ *
+ * Atribut width/height intrinsic dipakai browser untuk menyisakan ruang
+ * dengan rasio yang benar SEBELUM gambar selesai dimuat — tanpa itu
+ * navbar akan melompat (layout shift) begitu logo muncul.
  */
 
+/* Tinggi logo dalam px. Navbar dibatasi button min-h-10 (40px) dengan
+   py-1, jadi tinggi img harus <= 32px agar target sentuh tetap >= 40px. */
 const SIZES = {
-  sm: { text: 'text-[15px]', img: 26 },
-  md: { text: 'text-lg', img: 30 },
-  lg: { text: 'text-2xl', img: 40 },
+  sm: { text: 'text-[15px]', imgHeight: 30 },
+  md: { text: 'text-lg', imgHeight: 34 },
+  lg: { text: 'text-2xl', imgHeight: 46 },
 };
 
 export default function Logo({ size = 'md', className = '' }) {
-  const { logo, logoAlt, showName = true } = siteConfig.brand;
+  const { logo, logoAlt, showName = true, logoWidth, logoHeight } = siteConfig.brand;
   const [failed, setFailed] = useState(false);
 
   const preset = SIZES[size] ?? SIZES.md;
@@ -33,13 +41,14 @@ export default function Logo({ size = 'md', className = '' }) {
         <img
           src={logo}
           /* Kalau teks nama ikut ditampilkan, gambar cukup dekoratif
-             supaya screen reader tidak membacanya dua kali. */
+             supaya screen reader tidak membacanya dua kali. Kalau teksnya
+             disembunyikan (showName: false), alt dipakai sebagai nama. */
           alt={withText ? '' : logoAlt}
-          width={preset.img}
-          height={preset.img}
+          width={logoWidth || undefined}
+          height={logoHeight || undefined}
           onError={() => setFailed(true)}
           className="shrink-0 object-contain"
-          style={{ width: preset.img, height: preset.img }}
+          style={{ height: preset.imgHeight, width: 'auto' }}
         />
       ) : null}
 

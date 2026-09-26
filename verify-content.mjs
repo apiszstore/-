@@ -234,7 +234,14 @@ check(
 /* ---- Brand: logo & favicon dengan fallback aman ---- */
 console.log('\n=== Brand (logo & favicon) ===');
 const brand = await browser.evaluate(`JSON.stringify({
-  logoImgs: [...document.querySelectorAll('header img, footer img')].map((i) => i.getAttribute('src')),
+  logoImgs: [...document.querySelectorAll('header img, footer img')].map((i) => ({
+    src: i.getAttribute('src'),
+    naturalW: i.naturalWidth,
+    naturalH: i.naturalHeight,
+    renderW: Math.round(i.getBoundingClientRect().width),
+    renderH: Math.round(i.getBoundingClientRect().height),
+    alt: i.getAttribute('alt'),
+  })),
   wordmark: [...document.querySelectorAll('header span, footer span')]
     .filter((s) => s.textContent.trim() === 'APISZ')
     .length,
@@ -242,7 +249,6 @@ const brand = await browser.evaluate(`JSON.stringify({
     .filter((s) => s.textContent.trim() === 'STORE')
     .length,
   faviconHref: document.querySelector('link[rel~="icon"]')?.getAttribute('href') ?? null,
-  customExists: false,
 })`);
 const br = JSON.parse(brand);
 /* Branding custom ADA kalau file-nya benar-benar gambar.
@@ -255,10 +261,24 @@ const withImage = await browser.evaluate(`(async () => {
   } catch { return false; }
 })()`, { awaitPromise: true });
 br.customExists = withImage;
+const img = br.logoImgs[0] ?? null;
 
 if (br.customExists) {
-  check('logo memuat gambar dari /brand', br.logoImgs.length > 0, br.logoImgs.join(', '));
-  check('nama store tetap tampil di samping logo', br.wordmark > 0, `${br.wordmark} "APISZ"`);
+  check('logo memuat gambar dari /brand', Boolean(img), img ? img.src : 'tidak ada <img>');
+  /* Rasio asli 223x100 = 2.23. Kalau dipaksakan kotak, logo jadi kecil. */
+  if (img) {
+    const naturalRatio = img.naturalW / img.naturalH;
+    const renderRatio = img.renderW / img.renderH;
+    check(
+      'rasio logo terjaga (tidak dipaksa kotak)',
+      Math.abs(naturalRatio - renderRatio) < 0.05,
+      `natural ${naturalRatio.toFixed(2)} vs render ${renderRatio.toFixed(2)}`,
+    );
+    check('tinggi logo sesuai desain', img.renderH > 0 && img.renderH <= 60, `${img.renderH}px`);
+    check('logo punya alt untuk screen reader', Boolean(img.alt), `"${img.alt}"`);
+  }
+  /* showName: false -> teks nama harus TIDAK ada. */
+  check('teks nama disembunyikan (showName: false)', br.wordmark === 0 && br.storeName === 0, `${br.wordmark} "APISZ", ${br.storeName} "STORE"`);
   check('favicon memakai file custom', br.faviconHref === '/brand/favicon.png', `"${br.faviconHref}"`);
 } else {
   check('logo jatuh ke wordmark teks (file belum ada)', br.logoImgs.length === 0 && br.wordmark > 0, `${br.wordmark} "APISZ"`);
