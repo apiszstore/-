@@ -40,6 +40,25 @@ export const siteConfig = {
     message: 'Halo APISZ STORE, saya ingin melakukan order.',
   },
 
+  /**
+   * Logo & favicon.
+   *
+   * Letakkan file di `public/brand/`, lalu SESUAIKAN path di bawah.
+   * Kalau file belum ada / gagal dimuat, frontend otomatis kembali
+   * ke tampilan teks (APISZ + STORE) dan favicon bawaan — jadi
+   * website tetap rapi walau gambarnya belum diunggah.
+   */
+  brand: {
+    /** Logo di samping nama store. Kosongkan untuk pakai teks saja. */
+    logo: '/brand/logo.png',
+    /** Dipakai sebagai alt kalau teks nama disembunyikan. */
+    logoAlt: 'Logo APISZ STORE',
+    /** Tampilkan nama store di sebelah logo. */
+    showName: true,
+    /** Favicon. File PNG paling aman (32x32 atau 48x48). */
+    favicon: '/brand/favicon.png',
+  },
+
   copyright: '© 2026 APISZ STORE. All rights reserved.',
 };
 

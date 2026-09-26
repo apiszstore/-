@@ -231,6 +231,43 @@ check(
   `${rt.inView} dari ${rt.total} elemen terlihat di viewport`,
 );
 
+/* ---- Brand: logo & favicon dengan fallback aman ---- */
+console.log('\n=== Brand (logo & favicon) ===');
+const brand = await browser.evaluate(`JSON.stringify({
+  logoImgs: [...document.querySelectorAll('header img, footer img')].map((i) => i.getAttribute('src')),
+  wordmark: [...document.querySelectorAll('header span, footer span')]
+    .filter((s) => s.textContent.trim() === 'APISZ')
+    .length,
+  storeName: [...document.querySelectorAll('header span, footer span')]
+    .filter((s) => s.textContent.trim() === 'STORE')
+    .length,
+  faviconHref: document.querySelector('link[rel~="icon"]')?.getAttribute('href') ?? null,
+  customExists: false,
+})`);
+const br = JSON.parse(brand);
+/* Branding custom ADA kalau file-nya benar-benar gambar.
+   Jangan cuma andalkan status 200: Vite dev server menjawab 200 dengan
+   index.html (SPA fallback) untuk path yang tidak ada. */
+const withImage = await browser.evaluate(`(async () => {
+  try {
+    const res = await fetch('/brand/logo.png', { method: 'HEAD' });
+    return res.ok && (res.headers.get('content-type') || '').startsWith('image/');
+  } catch { return false; }
+})()`, { awaitPromise: true });
+br.customExists = withImage;
+
+if (br.customExists) {
+  check('logo memuat gambar dari /brand', br.logoImgs.length > 0, br.logoImgs.join(', '));
+  check('nama store tetap tampil di samping logo', br.wordmark > 0, `${br.wordmark} "APISZ"`);
+  check('favicon memakai file custom', br.faviconHref === '/brand/favicon.png', `"${br.faviconHref}"`);
+} else {
+  check('logo jatuh ke wordmark teks (file belum ada)', br.logoImgs.length === 0 && br.wordmark > 0, `${br.wordmark} "APISZ"`);
+  check('nama store tetap tampil', br.storeName > 0, `${br.storeName} "STORE"`);
+  check('favicon tetap bawaan (tidak 404)', br.faviconHref === '/favicon.svg', `"${br.faviconHref}"`);
+  const head = await fetch(TARGET.replace(/\/$/, '') + '/favicon.svg', { method: 'HEAD' });
+  check('favicon bawaan bisa diakses', head.ok, `HTTP ${head.status}`);
+}
+
 await browser.close();
 console.log(`\n${pass} lulus, ${fail} gagal`);
 process.exit(fail ? 1 : 0);

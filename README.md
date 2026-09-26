@@ -149,7 +149,39 @@ Kalau file belum ada, section otomatis menampilkan nama metode sebagai teks
 Tidak ada nomor telepon, ID, atau QR code di data ini. Nominal dikirim lewat
 proses order di Discord.
 
-### 7. Warna, font, dan gaya
+### 7. Logo & favicon
+
+Semua branding dikendalikan dari satu tempat di `src/config/site.js`:
+
+```js
+brand: {
+  logo: '/brand/logo.png',      // logo di samping nama store
+  logoAlt: 'Logo APISZ STORE',
+  showName: true,              // false = logo berdiri sendiri, teks disembunyikan
+  favicon: '/brand/favicon.png',
+},
+```
+
+Letakkan file-nya di **`public/brand/`**:
+
+| File | Saran ukuran |
+| --- | --- |
+| `logo.png` | tinggi 60–120 px, rasio bebas, latar transparan |
+| `favicon.png` | 32×32 atau 48×48 px, kotak, tidak transparan |
+
+Kalau nama file kamu berbeda, cukup ubah path di config. Format
+jpg/webp/svg juga bisa.
+
+**Fallback aman.** Kalau file belum ada:
+- logo → otomatis pakai wordmark teks "APISZ STORE"
+- favicon → otomatis pakai icon bawaan `public/favicon.svg`
+
+Jadi mengunggah gambar Half jadi tidak merusak tampilan. Favicon dicek
+dengan HEAD request **plus** verifikasi `content-type`|image/*`, karena
+Vite dev server menjawab HTTP 200 dengan `index.html` untuk path yang
+tidak ada — kalau cuma cek status, favicon akan tertukar ke file bogus.
+
+### 8. Warna, font, dan gaya
 
 Semua token ada di blok `@theme` pada `src/index.css`. Mengubah satu nilai
 mengubah seluruh website.
@@ -218,7 +250,9 @@ Navigasi bisa juga dibuka langsung lewat hash, misal
 
 - [ ] `discord` di `src/config/site.js` diganti invite asli
 - [ ] `social` (TikTok / WhatsApp) diisi, atau dibiarkan placeholder
-- [ ] Logo `dana.png`, `gopay.png`, `qris.png` ditaruh di `public/payment/`
+- [ ] Logo payment (`dana.png`, `gopay.png`, `qris.png`) ditaruh di `public/payment/`
+- [ ] Logo store `public/brand/logo.png` sudah diunggah
+- [ ] Favicon `public/brand/favicon.png` sudah diunggah
 - [ ] `src/data/products.js` diisi produk asli (hapus array kosong)
 - [ ] Testimonial demo diganti review asli (lalu hapus entri demo)
 - [ ] Screenshot showcase ditempel ke `public/`
