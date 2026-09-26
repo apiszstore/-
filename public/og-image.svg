@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0b" />
+      <stop offset="1" stop-color="#1c1710" />
+    </linearGradient>
+    <linearGradient id="ac" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFC24A" />
+      <stop offset="1" stop-color="#E0662B" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="980" cy="120" r="220" fill="#FFB020" opacity="0.10" />
+  <circle cx="200" cy="540" r="240" fill="#E0662B" opacity="0.10" />
+  <text x="100" y="250" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="92" font-weight="800" fill="url(#ac)" letter-spacing="4">APISZ</text>
+  <text x="100" y="340" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="92" font-weight="800" fill="#F2F1EE" letter-spacing="4">STORE</text>
+  <text x="100" y="405" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-weight="500" fill="#9A9891">Digital Service &amp; SA-MP Service</text>
+  <text x="100" y="470" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="400" fill="#6D6B66">Jasa Digital, Discord, dan SA-MP untuk pelajar.</text>
+</svg>
