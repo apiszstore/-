@@ -273,7 +273,7 @@ Navigasi bisa juga dibuka langsung lewat hash, misal
 ## Checklist sebelum publish
 
 - [ ] `discord` di `src/config/site.js` diganti invite asli
-- [ ] `social` (TikTok / WhatsApp) diisi, atau dibiarkan placeholder
+- [ ] `social` (TikTok / Instagram) diisi, atau dibiarkan placeholder
 - [ ] Logo payment (`dana.png`, `gopay.png`, `qris.png`) ditaruh di `public/payment/`
 - [ ] Logo store `public/brand/logo.png` sudah diunggah
 - [ ] Favicon `public/brand/favicon.png` sudah diunggah

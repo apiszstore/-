@@ -24,14 +24,13 @@ export const siteConfig = {
   social: {
     discord: 'https://discord.gg/ISI_LINK_DISCORD',
     tiktok: 'https://tiktok.com/@ISI_LINK_TIKTOK',
-    // Isi dengan link wa.me asli. Jangan pakai nomor karangan.
-    whatsapp: 'https://wa.me/ISI_LINK_WHATSAPP',
+    // Isi dengan link profil asli. Jangan pakai URL karangan.
+    instagram: 'https://instagram.com/ISI_LINK_INSTAGRAM',
   },
 
   contact: {
     // Isi dengan kontak asli nanti. Kosongkan berarti tampil sebagai placeholder.
     email: '',
-    whatsappNumber: '',
   },
 
   order: {

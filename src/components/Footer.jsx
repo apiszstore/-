@@ -8,7 +8,7 @@ import Logo from './Logo.jsx';
 const SOCIALS = [
   { key: 'discord', label: 'Discord' },
   { key: 'tiktok', label: 'TikTok' },
-  { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'instagram', label: 'Instagram' },
 ];
 
 export default function Footer() {

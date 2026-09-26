@@ -3,6 +3,7 @@
  * placeholder/karangan yang tertinggal, dan semua id nav-benar ada.
  * Jalankan: node verify-content.mjs
  */
+import { readFileSync } from 'node:fs';
 import { openBrowser, VIEWPORTS } from './tools/cdp.mjs';
 
 const PORT = 9261;
@@ -94,6 +95,28 @@ check('typo "adacheckout" sudah dibenahi', !d.hasAdacheckout);
 check('copyright hardcode 2026', d.copyright === '© 2026 APISZ STORE. All rights reserved.', `"${d.copyright}"`);
 check('tombol Order Now ada', d.orderButtons > 0, `${d.orderButtons} tombol`);
 check('testimonial demo diberi badge', d.demoBadges === 3, `${d.demoBadges} badge`);
+
+/* ---- Social: WhatsApp diganti Instagram ---- */
+console.log('\n=== Social links ===');
+const socials = await browser.evaluate(`(() => {
+  const col = [...document.querySelectorAll('footer h3, footer h2, footer [class*="font"]')]
+    .find((el) => el.textContent.trim() === 'Social');
+  const box = col?.closest('div');
+  return JSON.stringify({
+    labels: box ? [...box.querySelectorAll('li button')].map((b) => b.textContent.trim()) : [],
+    footerText: document.querySelector('footer')?.innerText ?? '',
+  });
+})()`);
+const so = JSON.parse(socials);
+check('kolom Social punya 3 link', so.labels.length === 3, so.labels.join(' | '));
+check('Instagram ada di kolom Social', so.labels.some((l) => l.startsWith('Instagram')), so.labels.join(' | '));
+check('WhatsApp tidak ada di footer', !/whatsapp|wa\.me/i.test(so.footerText), 'dihapus');
+
+/* Sumber config ikutDicek, bukan hanya hasil render — supaya.social
+   whatsapp tidak bisa "diam-diam" kembali lewat refactor. */
+const configSrc = readFileSync(new URL('./src/config/site.js', import.meta.url), 'utf8');
+check('config tidak punya social whatsapp', !/whatsapp/i.test(configSrc), 'dihapus');
+check('config punya social instagram', /instagram:\s*'https:\/\/instagram\.com\//i.test(configSrc), 'ada');
 
 /* ---- Testimonial: nama, tag, komentar, produk, bintang, tanggal ---- */
 console.log('\n=== Kelengkapan testimonial ===');
