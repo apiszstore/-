@@ -13,6 +13,13 @@ export default defineConfig({
     // Firewall Windows tetap harus mengizinkan Node.js lewat.
     host: true,
     open: false,
+    watch: {
+      /* File arsip / build output tidak perlu di-watch.
+       Tanpa ini Vite mencoba memindai file .rar/.zip, dan kalau OneDrive
+       sedang mengunci filenya Vite crash dengan EBUSY — dev server mati
+       total tanpa pesan yang jelas. */
+      ignored: ['**/*.rar', '**/*.zip', '**/*.7z', '**/dist/**'],
+    },
   },
   preview: {
     port: 8080,
