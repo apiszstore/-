@@ -1,47 +1,78 @@
 import { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import Icon from './Icons';
+import Icon from './Icon.jsx';
 
 /**
- * Modal reusable: backdrop blur, animasi masuk, tutup dengan ESC atau klik backdrop.
- * Mengunci scroll body selama modal terbuka.
+ * Modal dasar.
+ *
+ * Perhatian supaya tidak bugs di mobile:
+ * - `max-h` memakai dvh, bukan vh (tetap benar saat address bar browser HP hide)
+ * - isi modal yang scroll, bukan body
+ * - body dikunci scroll selama modal terbuka
+ * - Escape menutup, klik backdrop menutup, fokus dikembalikan
  */
-export default function Modal({ open, onClose, title, subtitle, children, size = 'md', labelledBy }) {
+export default function Modal({ open, onClose, labelledBy, children }) {
   const panelRef = useRef(null);
+  const restoreRef = useRef(null);
 
   useEffect(() => {
     if (!open) return undefined;
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    const prev = document.body.style.overflow;
+
+    restoreRef.current = document.activeElement;
+
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    if (panelRef.current) panelRef.current.focus();
+
+    // Fokus ke panel supaya keyboard user tidak terjebak di belakang modal.
+    panelRef.current?.focus();
+
+    const onKey = (event) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = previousOverflow;
+      if (restoreRef.current instanceof HTMLElement) restoreRef.current.focus();
     };
   }, [open, onClose]);
 
   if (!open) return null;
 
-  return createPortal(
-    <div className="modal" role="dialog" aria-modal="true" aria-labelledby={labelledBy || 'modal-title'}>
-      <button type="button" className="modal__backdrop" onClick={onClose} aria-label="Tutup" tabIndex={-1} />
-      <div className={`modal__panel modal__panel--${size}`} ref={panelRef} tabIndex={-1}>
-        <header className="modal__head">
-          <div>
-            {title ? <h3 className="modal__title">{title}</h3> : null}
-            {subtitle ? <p className="modal__subtitle">{subtitle}</p> : null}
-          </div>
-          <button type="button" className="modal__close" onClick={onClose} aria-label="Tutup modal">
-            <Icon name="close" size={18} />
-          </button>
-        </header>
-        <div className="modal__body">{children}</div>
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={labelledBy}
+    >
+      {/* Backdrop */}
+      <button
+        type="button"
+        aria-label="Tutup"
+        onClick={onClose}
+        className="absolute inset-0 animate-fade bg-black/65 backdrop-blur-[2px]"
+      />
+
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className="relative flex max-h-[88dvh] w-full max-w-lg animate-pop flex-col overflow-hidden rounded-t-xl border border-line bg-surface shadow-lift outline-none sm:max-h-[85dvh] sm:rounded-lg"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Tutup"
+          className="absolute top-3.5 right-3.5 z-10 grid size-8 place-items-center rounded-md border border-line bg-raised text-muted transition-colors hover:border-brand/45 hover:text-brand"
+        >
+          <Icon name="close" size={16} />
+        </button>
+
+        {children}
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

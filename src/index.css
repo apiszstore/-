@@ -1,0 +1,243 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   APISZ STORE — Design Tokens
+   --------------------------------------------------------------------------
+   Semua warna, font, radius, dan shadow ada di sini. Ganti nilai di blok ini
+   untuk mengubah seluruh tampilan website tanpa menyentuh komponen.
+
+   Sumber: Discord Dark Mode (dasar) + Orange APISZ (identitas).
+   ========================================================================== */
+
+@theme {
+  /* ---- Surface (Discord Dark Mode) --------------------------------------
+     PENTING: jangan beri nama token "base". Token warna bernama "base" akan
+     menabrak utility ukuran font `text-base`, sehingga `text-base` berubah
+     jadi utility warna dan teks jadi tidak terlihat. Pakai "canvas".        */
+  --color-canvas: #313338; /* background utama halaman */
+  --color-raised: #2b2d31; /* navbar, footer, area secondary */
+  --color-surface: #1e1f22; /* card, modal, panel */
+  --color-well: #17181a; /* input, area yang "tenggelam" */
+  --color-line: #3f4147; /* border utama */
+  --color-line-soft: #2f3136; /* border tipis */
+
+  /* ---- Text ------------------------------------------------------------- */
+  --color-ink: #f2f3f5; /* teks utama */
+  --color-muted: #b5bac1; /* teks sekunder */
+  --color-faint: #9a9ea3; /* teks tersier */
+
+  /* ---- Brand: Orange APISZ --------------------------------------------- */
+  --color-brand: #ff8a00;
+  --color-brand-hover: #ff9f2d;
+  --color-brand-deep: #d96f00;
+  --color-brand-ink: #1a1206; /* teks di atas orange */
+
+  /* ---- Status (semua sudah diuji kontrasnya di atas surface #1E1F22) ---- */
+  --color-available: #4cc26a;
+  --color-soon: #fab81e;
+  --color-custom: #8b9bf5;
+  --color-unavailable: #f26d6f;
+
+  /* ---- Font -------------------------------------------------------------
+     Sora untuk judul (geometris, technical), Plus Jakarta Sans untuk body.
+     Keduanya jauh dari typeface default template.                        */
+  --font-display: 'Sora', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ---- Radius ----------------------------------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* ---- Shadow ----------------------------------------------------------- */
+  --shadow-card: 0 2px 8px rgb(0 0 0 / 0.24);
+  --shadow-lift: 0 12px 32px -12px rgb(0 0 0 / 0.55);
+  --shadow-brand: 0 8px 24px -10px rgb(255 138 0 / 0.55);
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-rise: rise 0.6s var(--ease-out-soft) both;
+  --animate-fade: fade 0.4s var(--ease-out-soft) both;
+  --animate-pop: pop 0.22s var(--ease-out-soft) both;
+  --animate-marquee: marquee 28s linear infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Brand orange dipakai untuk sorot teks, bukan warna default browser. */
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-brand) 32%, transparent);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Scrollbar bergaya Discord */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-line);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #4b4d54;
+    background-clip: content-box;
+  }
+}
+
+/* ==========================================================================
+   Component utilities (dipakai banyak, jadi taruh di sini)
+   ========================================================================== */
+
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+
+  @media (width >= 80rem) {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Latar__: garis halus + glow orange, dipakai section CTA dan hero. */
+@utility glow-field {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-block-start: -30%;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    width: min(70rem, 130%);
+    aspect-ratio: 2 / 1;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-brand) 16%, transparent),
+      transparent 72%
+    );
+    filter: blur(28px);
+    z-index: -1;
+    pointer-events: none;
+  }
+}
+
+/* Motif grid tipis, sangat halus, hanya dekoratif. */
+@utility grid-lines {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-line) 32%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 32%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+}
+
+/* Hormati preferensi reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

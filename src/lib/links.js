@@ -1,27 +1,26 @@
+import { isPlaceholder, siteConfig } from '../config/site.js';
+
+export { isPlaceholder };
+
 /**
- * guarding link & format harga.
- * Nilai placeholder tidak akan dianggap sebagai link asli,
- * sehingga website tidak pernah mengarah ke URL palsu.
+ * Link Discord untuk order. Menyertakan pesan pembuka supaya
+ * customer tinggal lanjutkan chat.
  */
-
-const PLACEHOLDER_PATTERN = /^(your_|coming soon|todo|change_?me|isi_?dengan|belum tersedia)/i;
-
-/** True kalau nilai masih placeholder / kosong. */
-export function isPlaceholder(value) {
-  if (!value) return true;
-  return PLACEHOLDER_PATTERN.test(String(value).trim());
+export function buildOrderLink(subject) {
+  const base = siteConfig.discord;
+  const message = subject
+    ? `${siteConfig.order.message}\n\nSaya tertarik: ${subject}`
+    : siteConfig.order.message;
+  return `${base}?text=${encodeURIComponent(message)}`;
 }
 
-/** Ubah link WA menjadi format wa.me */
-export function toWhatsAppLink(link) {
-  if (isPlaceholder(link)) return '';
-  if (String(link).startsWith('http')) return link;
-  const digits = String(link).replace(/\D/g, '');
-  return digits ? `https://wa.me/${digits}` : '';
-}
-
-/** Format angka jadi format Rupiah: 10000 -> Rp10.000 */
-export function formatRupiah(value) {
-  if (value === null || value === undefined) return '';
-  return `Rp${new Intl.NumberFormat('id-ID').format(value)}`;
+/**
+ * Buka link eksternal di tab baru.
+ * Kalau masih placeholder, jangan dibuka — return false supaya
+ * pemanggil bisa menampilkan toast info.
+ */
+export function openExternal(url) {
+  if (isPlaceholder(url)) return false;
+  window.open(url, '_blank', 'noopener,noreferrer');
+  return true;
 }

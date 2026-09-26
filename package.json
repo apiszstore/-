@@ -8,15 +8,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "verify": "npm run verify:layout && npm run verify:menu && npm run verify:theme && npm run verify:contrast",
-    "verify:layout": "node verify-layout.mjs",
-    "verify:menu": "node verify-menu.mjs",
-    "verify:theme": "node verify-theme.mjs",
-    "verify:contrast": "node verify-contrast.mjs"
+    "verify": "node verify.mjs && node verify-contrast.mjs && node verify-content.mjs",
+    "verify:layout": "node verify.mjs",
+    "verify:contrast": "node verify-contrast.mjs",
+    "verify:content": "node verify-content.mjs"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "lucide-react": "^1.48.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.0",

@@ -1,38 +1,61 @@
-import Icon from './Icons';
-import Reveal from './Reveal';
+import { priceLabel } from '../lib/format.js';
+import Button from './Button.jsx';
+import Icon from './Icon.jsx';
+import StatusBadge from './StatusBadge.jsx';
 
 /**
- * Kartu layanan untuk section OUR SERVICES.
- * item: { icon, name, group, short, priceLabel, orderLabel, features }
+ * Kartu layanan. Bentuknya sama untuk Digital Service, SA-MP, dan
+ * Other Services, jadi dipakai bersama.
+ *
+ * Border orange + glow halus hanya saat hover, supaya tidak ada
+ * garis orange di setiap kartu.
  */
-export default function ServiceCard({ item, onOrder, onDetail, delay = 0 }) {
+export default function ServiceCard({ service, onViewDetails, compact = false }) {
   return (
-    <Reveal className="service-card-wrap" delay={delay}>
-      <article className="card service-card">
-        <header className="service-card__head">
-          <span className="card__icon">
-            <Icon name={item.icon} size={22} />
+    <article className="group flex h-full flex-col rounded-md border border-line bg-surface p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand/45 hover:shadow-[0_10px_28px_-16px_rgb(255_138_0/0.5)] sm:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-md border border-line bg-well text-brand transition-colors group-hover:border-brand/35">
+          <Icon name={service.icon} size={19} />
+        </span>
+        <StatusBadge status={service.status} />
+      </div>
+
+      <h3 className="mt-4 text-[17px] font-semibold">{service.name}</h3>
+      {service.tagline ? <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{service.tagline}</p> : null}
+
+      {service.features?.length ? (
+        <ul className={`mt-4 flex flex-col gap-2 ${compact ? '' : 'border-t border-line-soft pt-4'}`}>
+          {service.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-muted">
+              <Icon name="check" size={14} className="mt-0.5 shrink-0 text-brand/85" strokeWidth={2.5} />
+              <span className="min-w-0">{feature}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {service.notes ? (
+        <p className="mt-4 rounded-sm border border-line-soft bg-well/60 px-3 py-2 text-[12px] leading-relaxed text-faint">
+          {service.notes}
+        </p>
+      ) : null}
+
+      <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5">
+        <p className="text-[13px] text-faint">
+          Mulai{' '}
+          <span
+            className={`text-[15px] font-bold ${typeof service.price === 'number' ? 'text-brand' : 'text-muted'}`}
+          >
+            {priceLabel(service.price)}
           </span>
-          <span className="service-card__group">{item.group}</span>
-        </header>
+        </p>
 
-        <h3 className="service-card__title">{item.name}</h3>
-        <p className="service-card__text">{item.short}</p>
-
-        <div className="service-card__price">
-          <span className="service-card__price-label">Harga mulai</span>
-          <strong className="service-card__price-value">{item.priceLabel}</strong>
-        </div>
-
-        <div className="service-card__actions">
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => onDetail(item)}>
-            View Detail
-          </button>
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => onOrder(item)}>
-            {item.orderLabel || 'ORDER'}
-          </button>
-        </div>
-      </article>
-    </Reveal>
+        {onViewDetails ? (
+          <Button variant="ghost" size="sm" iconRight="chevronDown" onClick={() => onViewDetails(service)}>
+            View Details
+          </Button>
+        ) : null}
+      </div>
+    </article>
   );
 }

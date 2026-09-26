@@ -1,87 +1,54 @@
 /**
+ * Testimonial.
+ *
  * ============================================================
- *  DATA TESTIMONIAL
+ *  PENTING: JANGAN ISI TESTIMONIAL PALSU.
  * ============================================================
- *  MASIH DATA CONTOH (dummy).
- *  Ganti nama, avatar, dan teks dengan testimoni asli nanti.
- *  avatar: isi URL gambar, atau 1-2 huruf untuk inisial.
- *  Ubah dataDummy menjadi false setelah memakai data asli.
+ *  `demo: true` berarti kartu ini bukan review asli — frontend
+ *  akan menandaiinya dengan badge "Demo" supaya tidak disalahartikan.
+ *
+ *  CARA MENAMBAH TESTIMONIAL ASLI
  * ============================================================
+ *  1. Ambil review asli (dari Discord / chat customer).
+ *  2. Tambahkan objek baru dengan `demo: false`.
+ *  3. Isi `rating` dengan angka 1-5 sesuai penilaian asli.
+ *  4. Hapus seluruh entri demo bila sudah ada review asli.
+ *
+ *  `rating` hanya ditampilkan kalau berisi angka.
+ *  Demo sengaja memakai `rating: null` supaya tidak menampilkan
+ *  bintang palsu yang bisa disalahartikan sebagai penilaian asli.
+ *  `product` = service yang dipakai.
  */
-
-export const dataDummy = true;
 
 export const testimonials = [
   {
-    id: 't1',
-    name: 'Rizky Pratama',
-    handle: '@rizkydev',
-    avatar: 'RP',
-    service: 'Discord Bot Development',
-    rating: 5,
-    text: 'Bot moderasi langsung dipakai setelah selesai. Respons cepat dan harga di awal sudah jelas, jadi tidak ada kejutan. Recommended buat server komunitas.',
+    id: 'demo-1',
+    demo: true,
+    name: 'Customer Name',
+    username: '@username',
+    product: 'Discord Server Setup',
+    rating: null,
+    text: 'Pelayanannya cepat dan hasilnya sesuai request.',
   },
   {
-    id: 't2',
-    name: 'Nadia Kusuma',
-    handle: '@nadiaaa',
-    avatar: 'NK',
-    service: 'Discord Server Setup',
-    rating: 5,
-    text: 'Server Discord-nya rapi banget, channel tersusun logical. Harganya masih masuk akal untuk pelajar.',
+    id: 'demo-2',
+    demo: true,
+    name: 'Customer Name',
+    username: '@username',
+    product: 'Custom Discord Bot',
+    rating: null,
+    text: 'Ini contoh tampilan saja, bukan review asli.',
   },
   {
-    id: 't3',
-    name: 'Bagas Wicaksono',
-    handle: '@bagas_rp',
-    avatar: 'BW',
-    service: 'Jasa On Server (STANDARD)',
-    rating: 5,
-    text: 'Rename server dan set admin beres dengan cepat. Adminnya sabar assisting sampai selesai.',
-  },
-  {
-    id: 't4',
-    name: 'Dimas Anggara',
-    handle: '@dimas.samp',
-    avatar: 'DA',
-    service: 'Textdraw HP',
-    rating: 4,
-    text: 'Textdraw HP-nya bagus dan sesuai request. Ada satu revisi, dan adminsnyarespons cepat. Worth it.',
-  },
-  {
-    id: 't5',
-    name: 'Fajar Nugroho',
-    handle: '@fajarnr',
-    avatar: 'FN',
-    service: 'Filescript UI System',
-    rating: 5,
-    text: 'UI system-nya terpisah dari gamemode, jadi gampang diedit sendiri. Mantap.',
-  },
-  {
-    id: 't6',
-    name: 'Aisyah Putri',
-    handle: '@aisya.putri',
-    avatar: 'AP',
-    service: 'Landing Page',
-    rating: 5,
-    text: 'Landing page untuk portofolio sekolahku kelar cepat dan ringan dibuka di HP. Recommended!',
-  },
-  {
-    id: 't7',
-    name: 'Yoga Saputra',
-    handle: '@yogasp',
-    avatar: 'YS',
-    service: 'Mapping Interior',
-    rating: 4,
-    text: 'Interior dibangun dari gambar yang aku kirim, hasilnya bagus. Butuh beberapa revisi detail.',
-  },
-  {
-    id: 't8',
-    name: 'Rizky Ardiansyah',
-    handle: '@rizky_ard',
-    avatar: 'RA',
-    service: 'Ticket Support Bot',
-    rating: 5,
-    text: 'Sekarang order masuk lewat ticket, jadi lebih rapi. Thank you APISZ!',
+    id: 'demo-3',
+    demo: true,
+    name: 'Customer Name',
+    username: '@username',
+    product: 'Paket On Server',
+    rating: null,
+    text: 'Contoh kartu testimonial. Ganti dengan review asli nanti.',
   },
 ];
+
+/** Dipakai di section How To Order / CTA. */
+export const hasRealTestimonials = testimonials.some((t) => !t.demo);

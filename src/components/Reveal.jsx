@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Scroll reveal: animasi fade-in + slide-up ringan.
- * Otomatis nonaktif kalau user memilih reduced motion.
+ * Munculkan konten saat masuk viewport.
+ *
+ * Pakai IntersectionObserver (bukan scroll listener) supaya murah.
+ * Kalau user minta reduced motion, langsung tampil tanpa animasi.
  */
-export default function Reveal({ children, delay = 0, className = '', as: Tag = 'div' }) {
+export default function Reveal({ as: Tag = 'div', delay = 0, className = '', children, ...rest }) {
   const ref = useRef(null);
   const [shown, setShown] = useState(false);
 
@@ -12,22 +14,18 @@ export default function Reveal({ children, delay = 0, className = '', as: Tag = 
     const node = ref.current;
     if (!node) return undefined;
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce || !('IntersectionObserver' in window)) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setShown(true);
       return undefined;
     }
 
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setShown(true);
-            observer.unobserve(entry.target);
-          }
-        });
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShown(true);
+        observer.disconnect();
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.08 },
     );
 
     observer.observe(node);
@@ -37,8 +35,11 @@ export default function Reveal({ children, delay = 0, className = '', as: Tag = 
   return (
     <Tag
       ref={ref}
-      className={`reveal ${shown ? 'is-visible' : ''} ${className}`}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+      className={`transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        shown ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
+      } ${className}`}
+      {...rest}
     >
       {children}
     </Tag>

@@ -1,15 +1,23 @@
-/** Scroll halus ke section tertentu. */
-
-export function scrollToId(id) {
-  if (typeof document === 'undefined') return;
-  const target = id === 'top' ? document.body : document.getElementById(id);
-  if (!target) return;
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+/**
+ * Scroll ke section berdasarkan id, dengan toleransi navbar sticky.
+ * Offset ditangani oleh `scroll-padding-top` di index.css.
+ */
+export function scrollToSection(id) {
+  const target = document.getElementById(id);
+  if (!target) return false;
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  return true;
 }
 
+/** Scroll ke paling atas halaman. */
 export function scrollToTop() {
-  if (typeof window === 'undefined') return;
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * Bangun URL hash untuk sebuah section, supaya link bisa di-share.
+ * Contoh: scrollToHash('#products')
+ */
+export function sectionHref(id) {
+  return `#${id}`;
 }

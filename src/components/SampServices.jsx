@@ -1,196 +1,117 @@
 import { useState } from 'react';
-import {
-  filescriptService,
-  mappingService,
-  onServerPackages,
-  sampServices,
-  streamerService,
-  textdrawService,
-} from '../data/services';
-import { useApp } from '../context/AppContext';
-import Button from './Button';
-import Icon from './Icons';
-import Reveal from './Reveal';
-import SectionHeading from './SectionHeading';
+import { sampGeneral, sampPacketNote, sampPackets } from '../data/sampServices.js';
+import { priceLabel } from '../lib/format.js';
+import { useOrder } from '../hooks/useOrder.js';
+import Button from './Button.jsx';
+import Icon from './Icon.jsx';
+import Reveal from './Reveal.jsx';
+import Section from './Section.jsx';
+import SectionHeading from './SectionHeading.jsx';
+import ServiceCard from './ServiceCard.jsx';
+import ServiceDetailModal from './ServiceDetailModal.jsx';
 
-/** Kartu modul kecil: Textdraw / Filescript / Mapping / Streamer. */
-function ModuleCard({ data, onOrder, delay }) {
+export default function SampServices() {
+  const [active, setActive] = useState(null);
+  const order = useOrder();
+
   return (
-    <Reveal className="module-card-wrap" delay={delay}>
-      <article className="card module-card">
-        <header className="module-card__head">
-          <h3 className="module-card__title">{data.title}</h3>
-          <span className="module-card__price">{data.priceLabel}</span>
-        </header>
-        <ul className="chip-list">
-          {data.items.map((item) => (
-            <li className="chip" key={item}>
-              <Icon name="check" size={13} />
-              {item}
-            </li>
+    <Section id="samp" tone="raised">
+      <SectionHeading
+        eyebrow="SA-MP Services"
+        title="Layanan GTA SA-MP"
+        subtitle="Scripting, perbaikan bug, sampai Paket On Server untuk server SA-MP kamu."
+      />
+
+      {/* Paket On Server */}
+      <div className="mt-10">
+        <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-[0.1em] text-ink uppercase">
+          <Icon name="terminal" size={16} className="text-brand" />
+          Paket On Server
+        </h3>
+
+        <div className="grid gap-5 md:grid-cols-3">
+          {sampPackets.map((packet, index) => (
+            <Reveal key={packet.id} delay={index * 70} className="h-full">
+              <PacketCard packet={packet} onOrder={() => order(packet.name)} />
+            </Reveal>
           ))}
-        </ul>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm module-card__action"
-          onClick={onOrder}
-        >
-          {data.orderLabel}
-          <Icon name="arrowRight" size={15} />
-        </button>
-      </article>
-    </Reveal>
+        </div>
+
+        <p className="mt-4 flex items-start gap-2 rounded-md border border-line bg-surface/60 px-4 py-3 text-[12.5px] leading-relaxed text-muted">
+          <Icon name="info" size={15} className="mt-0.5 shrink-0 text-brand" />
+          {sampPacketNote}
+        </p>
+      </div>
+
+      {/* Jasa umum */}
+      <div className="mt-12">
+        <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-[0.1em] text-ink uppercase">
+          <Icon name="layers" size={16} className="text-brand" />
+          Jasa SA-MP
+        </h3>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          {sampGeneral.map((service, index) => (
+            <Reveal key={service.id} delay={index * 70} className="h-full">
+              <ServiceCard service={service} onViewDetails={setActive} />
+            </Reveal>
+          ))}
+        </div>
+      </div>
+
+      {active ? (
+        <ServiceDetailModal
+          service={active}
+          onClose={() => setActive(null)}
+          onOrder={() => {
+            setActive(null);
+            order(active.name);
+          }}
+        />
+      ) : null}
+    </Section>
   );
 }
 
-/** Section SA-MP SERVICES. */
-export default function SampServices() {
-  const { openOrder } = useApp();
-  const [activePackage, setActivePackage] = useState(onServerPackages.packages[1].id);
-
-  const order = (title, subtitle, price, serviceId) => () =>
-    openOrder({ title, subtitle, price, serviceId });
-
-  const pkg = onServerPackages.packages.find((p) => p.id === activePackage) || onServerPackages.packages[0];
+function PacketCard({ packet, onOrder }) {
+  const highlighted = packet.highlight;
 
   return (
-    <section className="section samp" id="samp">
-      <div className="container">
-        <Reveal>
-          <SectionHeading
-            eyebrow="SA-MP SERVICE"
-            title="SA-MP SERVICES"
-            subtitle="Layanan pengembangan dan konfigurasi server SA-MP."
-          />
-        </Reveal>
+    <article
+      className={`relative flex h-full flex-col rounded-md border p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 sm:p-6 ${
+        highlighted
+          ? 'border-brand/50 bg-surface shadow-[0_10px_30px_-18px_rgb(255_138_0/0.55)]'
+          : 'border-line bg-surface/60 hover:border-brand/40'
+      }`}
+    >
+      {highlighted ? (
+        <span className="absolute -top-2.5 left-5 rounded-full border border-brand/40 bg-brand px-2.5 py-0.5 text-[10px] font-bold tracking-[0.12em] text-brand-ink uppercase">
+          Populer
+        </span>
+      ) : null}
 
-        {/* ---- JASA SA-MP (ringkasan kartu utama) ---- */}
-        <Reveal>
-          <div className="grid grid--2 samp__intro">
-            {sampServices
-              .filter((item) => ['samp-dev', 'samp-on-server'].includes(item.id))
-              .map((item) => (
-                <article className="card highlight-card" key={item.id}>
-                  <span className="card__icon">
-                    <Icon name={item.icon} size={22} />
-                  </span>
-                  <div>
-                    <h3 className="highlight-card__title">{item.name}</h3>
-                    <p className="highlight-card__text">{item.short}</p>
-                  </div>
-                  <div className="highlight-card__foot">
-                    <span className="highlight-card__price">{item.priceLabel}</span>
-                    <button
-                      type="button"
-                      className="btn btn--primary btn--sm"
-                      onClick={order(item.name, item.short, item.priceLabel, item.id)}
-                    >
-                      {item.orderLabel}
-                    </button>
-                  </div>
-                </article>
-              ))}
-          </div>
-        </Reveal>
+      <h4 className="font-display text-base font-bold tracking-[0.08em] uppercase">{packet.name}</h4>
+      <p className="mt-1 text-[13px] text-muted">{packet.tagline}</p>
 
-        {/* ---- PAKET JASA ON SERVER ---- */}
-        <Reveal>
-          <div className="card panel" id="on-server">
-            <div className="panel__head">
-              <div>
-                <span className="panel__eyebrow">PACKAGE</span>
-                <h3 className="panel__title">{onServerPackages.title}</h3>
-              </div>
-              <span className="panel__price">{onServerPackages.priceLabel}</span>
-            </div>
+      <p className="mt-4 text-2xl font-bold text-brand">{priceLabel(packet.price)}</p>
 
-            <div className="tabs" role="tablist" aria-label="Paket Jasa On Server">
-              {onServerPackages.packages.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={item.id === activePackage}
-                  className={`tabs__item ${item.id === activePackage ? 'is-active' : ''}`}
-                  onClick={() => setActivePackage(item.id)}
-                >
-                  {item.name}
-                </button>
-              ))}
-            </div>
+      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-line-soft pt-4">
+        {packet.features.map((feature) => (
+          <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-muted">
+            <Icon name="check" size={14} className="mt-0.5 shrink-0 text-brand/85" strokeWidth={2.5} />
+            <span className="min-w-0">{feature}</span>
+          </li>
+        ))}
+      </ul>
 
-            <div className="package">
-              <div className="package__info">
-                <h4 className="package__name">{pkg.name}</h4>
-                <strong className="package__price">{pkg.priceLabel}</strong>
-                <ul className="check-list">
-                  {pkg.features.map((feature) => (
-                    <li key={feature}>
-                      <Icon name="check" size={15} />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="package__compare" aria-hidden="true">
-                {onServerPackages.packages.map((item) => {
-                  const level = item.features.length;
-                  return (
-                    <div className="package__bar-row" key={item.id}>
-                      <span className="package__bar-label">{item.name}</span>
-                      <span className="package__bar">
-                        <span
-                          className="package__bar-fill"
-                          style={{ width: `${(level / 6) * 100}%` }}
-                        />
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <p className="panel__note">
-              <Icon name="info" size={16} />
-              <span>{onServerPackages.note}</span>
-            </p>
-
-            <Button
-              type="primary"
-              size="md"
-              onClick={order(`Jasa On Server - ${pkg.name}`, pkg.features.join(', '), pkg.priceLabel, pkg.id)}
-              iconRight={<Icon name="arrowRight" size={16} />}
-            >
-              {onServerPackages.orderLabel}
-            </Button>
-          </div>
-        </Reveal>
-
-        {/* ---- MODUL ---- */}
-        <div className="grid grid--2">
-          <ModuleCard
-            data={textdrawService}
-            delay={0}
-            onOrder={order('Textdraw', textdrawService.items.join(', '), textdrawService.priceLabel, 'textdraw')}
-          />
-          <ModuleCard
-            data={filescriptService}
-            delay={60}
-            onOrder={order('Filescript', filescriptService.items.join(', '), filescriptService.priceLabel, 'filescript')}
-          />
-          <ModuleCard
-            data={mappingService}
-            delay={0}
-            onOrder={order('Mapping', mappingService.items.join(', '), mappingService.priceLabel, 'mapping')}
-          />
-          <ModuleCard
-            data={streamerService}
-            delay={60}
-            onOrder={order('Streamer', streamerService.items.join(', '), streamerService.priceLabel, 'streamer')}
-          />
-        </div>
-      </div>
-    </section>
+      <Button
+        variant={highlighted ? 'primary' : 'ghost'}
+        icon="cart"
+        onClick={onOrder}
+        className="mt-5 w-full"
+      >
+        Order Now
+      </Button>
+    </article>
   );
 }

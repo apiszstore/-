@@ -1,116 +1,96 @@
-import { useApp } from '../context/AppContext';
-import { isPlaceholder, toWhatsAppLink } from '../lib/links';
-import { useExternalLink } from '../lib/useExternalLink';
-import Icon from './Icons';
-import Logo from './Logo';
-
-const LINK_GROUPS = [
-  {
-    id: 'menu',
-    title: 'Menu',
-    links: [
-      { label: 'Home', to: '/' },
-      { label: 'Services', to: '/services' },
-      { label: 'Products', to: '/products' },
-      { label: 'Pricing', to: '/pricing' },
-    ],
-  },
-  {
-    id: 'more',
-    title: 'More',
-    links: [
-      { label: 'Showcase', to: '/showcase' },
-      { label: 'Testimonial', to: '/testimonials' },
-      { label: 'FAQ', to: '/faq' },
-      { label: 'Contact', to: '/contact' },
-    ],
-  },
-];
+import { footerNavItems, footerServices, siteConfig, socialLabel } from '../config/site.js';
+import { useSafeLink } from '../hooks/useOrder.js';
+import { scrollToSection } from '../lib/scroll.js';
+import Button from './Button.jsx';
+import Icon from './Icon.jsx';
+import Logo from './Logo.jsx';
 
 const SOCIALS = [
-  { id: 'discord', label: 'Discord', icon: 'discord' },
-  { id: 'tiktok', label: 'TikTok', icon: 'tiktok' },
-  { id: 'instagram', label: 'Instagram', icon: 'instagram' },
-  { id: 'youtube', label: 'YouTube', icon: 'youtube' },
+  { key: 'discord', label: 'Discord' },
+  { key: 'tiktok', label: 'TikTok' },
+  { key: 'whatsapp', label: 'WhatsApp' },
 ];
 
-/** Footer website. */
 export default function Footer() {
-  const { config, navigate } = useApp();
-  const openExternal = useExternalLink();
-  const { discord, whatsapp } = config.social;
-  const waLink = toWhatsAppLink(whatsapp.link);
+  const openLink = useSafeLink();
 
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer__top">
-          <div className="footer__brand">
-            <Logo size="md" showTagline />
-            <p className="footer__desc">{config.shortDescription}</p>
-            <div className="footer__socials">
-              {SOCIALS.map((item) => {
-                const link = item.id === 'discord' ? discord.invite : config.social[item.id];
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="social-btn"
-                    onClick={() => openExternal(link, `Link ${item.label} APISZ STORE`)}
-                    aria-label={item.label}
-                  >
-                    <Icon name={item.icon} size={18} />
-                  </button>
-                );
-              })}
-            </div>
+    <footer className="border-t border-line bg-raised">
+      <div className="container-page py-14">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div>
+            <Logo size="md" />
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">{siteConfig.tagline}</p>
+            <Button variant="primary" size="sm" icon="cart" onClick={() => openLink(siteConfig.discord, 'Discord')}>
+              {siteConfig.order.label}
+            </Button>
           </div>
 
-          {LINK_GROUPS.map((group) => (
-            <nav className="footer__col" key={group.id} aria-label={group.title}>
-              <h3 className="footer__col-title">{group.title}</h3>
-              <ul className="footer__links">
-                {group.links.map((link) => (
-                  <li key={link.label}>
-                    <button
-                      type="button"
-                      className="footer__link"
-                      onClick={() => navigate(link.to)}
-                    >
-                      {link.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+          <FooterColumn title="Navigation">
+            {footerNavItems.map((item) => (
+              <FooterLink key={item.id} onClick={() => scrollToSection(item.id)}>
+                {item.label}
+              </FooterLink>
+            ))}
+          </FooterColumn>
 
-          <div className="footer__col">
-            <h3 className="footer__col-title">Contact</h3>
-            <ul className="footer__links">
-              <li>
+          <FooterColumn title="Services">
+            {footerServices.map((item) => (
+              <FooterLink key={item.label} onClick={() => scrollToSection(item.id)}>
+                {item.label}
+              </FooterLink>
+            ))}
+          </FooterColumn>
+
+          <FooterColumn title="Social">
+            {SOCIALS.map((social) => (
+              <li key={social.key}>
                 <button
                   type="button"
-                  className="footer__link"
-                  onClick={() => openExternal(discord.invite, 'Link Discord APISZ STORE')}
+                  onClick={() => openLink(siteConfig.social[social.key], social.label)}
+                  className="group flex min-h-10 w-full items-center justify-between gap-2 py-2 text-left text-sm text-muted transition-colors hover:text-brand"
                 >
-                  Discord: {discord.label}
+                  {social.label}
+                  <span className="text-[11px] text-faint group-hover:text-brand/70">
+                    {socialLabel(siteConfig.social[social.key])}
+                  </span>
                 </button>
               </li>
-              <li className="footer__link is-muted">
-                WhatsApp: {isPlaceholder(whatsapp.link) ? whatsapp.label : whatsapp.link}
-              </li>
-            </ul>
-          </div>
+            ))}
+          </FooterColumn>
         </div>
 
-        <div className="footer__bottom">
-          <p>
-            &copy; {config.copyrightYear} {config.storeName}. All rights reserved.
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-line pt-6 sm:flex-row sm:items-center">
+          <p className="text-[13px] text-faint">{siteConfig.copyright}</p>
+          <p className="flex items-center gap-1.5 text-[13px] text-faint">
+            <Icon name="info" size={14} />
+            Harga &amp; status bisa berubah, konfirmasi lewat Discord.
           </p>
-          <p className="footer__credit">{config.tagline}</p>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterColumn({ title, children }) {
+  return (
+    <div>
+      <h3 className="mb-3 text-xs font-bold tracking-[0.16em] text-ink uppercase">{title}</h3>
+      <ul className="flex flex-col">{children}</ul>
+    </div>
+  );
+}
+
+function FooterLink({ children, onClick }) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex min-h-10 w-full items-center py-2 text-left text-sm text-muted transition-colors hover:text-brand"
+      >
+        {children}
+      </button>
+    </li>
   );
 }

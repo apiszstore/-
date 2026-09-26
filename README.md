@@ -1,219 +1,180 @@
 # APISZ STORE
 
-**Digital Service & SA-MP Service**
+Landing page untuk **APISZ STORE** — layanan Digital Service (Discord, Custom Bot),
+SA-MP, Website, Mapping, dan Streamer.
 
-Solusi jasa digital, Discord, dan SA-MP dengan harga terjangkau untuk pelajar.
-
-Dibuat dengan **React 19 + Vite**. Ringan, tanpa library UI tambahan, dan semua
-data mudah diedit tanpa menyentuh komponen.
+Tema: **Discord Dark Mode** dengan aksen **orange**, dark-only.
+Dibangun dengan **React 19 + Vite 7 + Tailwind CSS v4 + Lucide React**.
 
 ---
 
-## Menjalankan
+## Menjalankan website
+
+Butuh **Node.js 20.19+** (atau 22.12+).
 
 ```bash
-npm install
-npm run dev
+npm install     # pasang dependency
+npm run dev     # jalankan mode pengembangan
 ```
 
-Buka alamat yang ditampilkan Vite (default `http://localhost:5173`).
+Buka `http://localhost:8080/`.
 
-Perintah lain:
+Server otomatis terbuka di semua jaringan (port 8080), jadi HP atau laptop
+lain di Wi-Fi yang sama bisa diakses lewat alamat IP yang ditampilkan terminal,
+misalnya `http://192.168.x.x:8080/`.
+
+### Perintah lain
 
 ```bash
-npm run build     # build produksi ke folder dist/
-npm run preview   # cek hasil build secara lokal
+npm run build            # build produksi ke folder dist/
+npm run preview          # preview hasil build
+npm run verify           # cek layout + kontras warna (butuh dev server aktif)
+npm run verify:contrast  # audit kontras WCAG + target sentuh saja
 ```
+
+`npm run verify` **butuh `npm run dev` berjalan di terminal lain**, karena
+scriptnya membuka `http://localhost:8080/` dengan Microsoft Edge headless.
 
 ---
 
-## Struktur Folder
+## Struktur folder
 
 ```
-web-store/
-|-- index.html               # meta title, description, Open Graph, favicon
-|-- vite.config.js
-|-- public/
-|   |-- favicon.svg          # logo/favicon (ganti dengan file kamu)
-|   `-- og-image.svg         # gambar preview saat link dibagikan
-`-- src/
-    |-- main.jsx
-    |-- App.jsx              # routing + urutan section
-    |-- config.js            # <<< SEMUA LINK KONTAK ADA DI SINI
-    |-- data/
-    |   |-- services.js      # daftar layanan, paket bundle, paket on-server
-    |   |-- products.js      # katalog produk (store)
-    |   |-- testimonials.js  # testimoni
-    |   |-- showcase.js      # project showcase
-    |   `-- faq.js           # pertanyaan FAQ
-    |-- context/
-    |   |-- AppContext.jsx   # route, navigate, order modal
-    |   `-- ToastContext.jsx # notifikasi
-    |-- lib/
-    |   |-- router.js        # router sederhana berbasis hash
-    |   |-- sections.js      # daftar section untuk scroll
-    |   |-- links.js         # cek placeholder + format Rupiah
-    |   |-- scroll.js
-    |   |-- clipboard.js
-    |   `-- useExternalLink.jsx
-    |-- components/          # Navbar, Hero, sections, modal, dll
-    `-- styles/index.css     # seluruh design system
+src/
+├─ components/     # semua komponen UI (satu file per komponen)
+├─ config/         # konfigurasi global: link, nama brand, status
+├─ data/           # semua isi konten: harga, layanan, produk, FAQ, dll
+├─ hooks/          # useOrder (tombol order), dll
+├─ lib/            # utilitas murni: format harga, scroll, buka link
+├─ App.jsx         # merangkai seluruh section
+└─ index.css       # design tokens (warna, font, radius, shadow)
+public/            # favicon.svg, og-image.svg
+tools/             # helper CDP untuk script verifikasi
 ```
+
+Aturan sederhana: **komponen tidak boleh menyimpan harga atau link langsung**,
+semua datang dari `src/data/` dan `src/config/`.
 
 ---
 
-## Cara Mengubah Data
+## Mengubah isi website
 
-### 1. Link kontak, taglines, statistik
+### 1. Link Discord (WAJIB diisi sebelum publish)
 
-Buka `src/config.js`.
-
-```js
-social: {
-  discord:  { label: 'APISZ STORE', invite: 'YOUR_DISCORD_INVITE' },
-  whatsapp: { label: 'Coming Soon', link: 'YOUR_WHATSAPP' },
-  tiktok:    'YOUR_TIKTOK',
-  instagram: 'YOUR_INSTAGRAM',
-  youtube:   'YOUR_YOUTUBE',
-},
-```
-
-Selama nilainya masih `YOUR_...` atau `COMING SOON`, tombol tersebut **tidak
-akan membuka halaman palsu**. Instead, muncul notifikasi bahwa tautannya belum
-diisi. Jadi website aman dipublish walau data belum lengkap.
-
-Ganti juga angka statistik hero di bagian `stats`:
+Buka `src/config/site.js`, ganti:
 
 ```js
-stats: [
-  { id: 'projects', value: '50+', label: 'Projects' },
-  { id: 'customers', value: '30+', label: 'Customers' },
-  { id: 'services', value: '10+', label: 'Services' },
-  { id: 'response', value: 'Fast', label: 'Response' },
-],
+discord: 'https://discord.gg/ISI_LINK_DISCORD',
 ```
 
-### 2. Nomor pembayaran
+Selama masih berisi `ISI_LINK`, semua tombol **Order Now** tidak akan membuka
+link apa pun — muncul toast info sebagai ganti. Jadi tidak ada risiko
+terkirim ke link yang salah.
 
-`src/config.js` bagian `payment.methods`. Isi `accountName` dan
-`accountNumber`. Selama kosong / masih `YOUR_...`, kartu payment menampilkan
-status **COMING SOON** dan tidak menampilkan nomor apa pun.
+### 2. Harga & layanan
 
-### 3. Menambah produk
-
-Buka `src/data/products.js`, salin satu blok produk, lalu ubah `id`
-(harus unik), `name`, dan isinya.
-
-```js
-{
-  id: 'discord-store-server',   // tanpa spasi, unik
-  name: 'Discord Store Server',
-  category: 'discord',          // all | discord | samp | textdraw | filescript | mapping | other
-  status: 'available',          // available | limited | out-of-stock | custom
-  icon: 'discord',              // nama ikon dari components/Icons.jsx
-  priceLabel: 'Rp10.000',
-  priceValue: 10000,            // boleh null kalau harga custom
-  priceNote: 'Mulai dari',
-  short: 'Deskripsi singkat untuk kartu.',
-  description: 'Deskripsi panjang untuk halaman detail.',
-  features: ['Fitur 1', 'Fitur 2'],
-  requirements: ['Syarat 1', 'Syarat 2'],
-  faq: [{ q: 'Pertanyaan?', a: 'Jawaban.' }],
-}
-```
-
-Produk baru langsung muncul di halaman `#/products`, bisa dicari, difilter, dan
-halaman detailnya otomatis ada di `#/product/<id>`.
-
-### 4. Mengubah harga
-
-Harga ada di dua tempat, dan sengaja dipisah:
-
-| Data | File | Dipakai di |
-| --- | --- | --- |
-| Harga kartu layanan | `src/data/services.js` | Section OUR SERVICES + section detail |
-| Harga paket bundle | `services.js` -> `bundlePackages` | Section PRICING |
-| Harga paket on-server | `services.js` -> `onServerPackages` | Section SA-MP |
-| Harga produk store | `src/data/products.js` | Halaman Products |
-
-`priceValue` dipakai untuk informasi tambahan (`Rp10.000` -> `10000`). Isi
-`null` kalau harga custom.
-
-### 5. Testimoni dan showcase
-
-- `src/data/testimonials.js` - masih data contoh. Setelah diganti dengan data
-  asli, ubah `dataDummy` menjadi `false` supaya banner "data contoh" hilang.
-- `src/data/showcase.js` - `image` boleh dikosongkan, nanti muncul visual
-  placeholder otomatis. Isi dengan URL foto asli bila ada.
-
-### 6. FAQ
-
-Tambah objek baru di `src/data/faq.js`:
-
-```js
-{
-  id: 'f10',
-  question: 'Pertanyaan baru?',
-  answer: 'Jawaban lengkapnya di sini.',
-}
-```
-
----
-
-## Struktur URL
-
-Website memakai router hash sederhana, jadi tidak butuh konfigurasi server.
-
-| URL | Isi |
+| File | Isi |
 | --- | --- |
-| `#/` | Home (semua section) |
-| `#/products` | Halaman Store |
-| `#/product/discord-store-server` | Detail produk |
-| `#/services`, `#/pricing`, `#/faq`, ... | Home + scroll ke section tersebut |
+| `src/data/services.js` | Discord Server Setup, Custom Bot, Bundle |
+| `src/data/sampServices.js` | Jasa SA-MP, Custom SA-MP, 3 Paket On Server |
+| `src/data/otherServices.js` | Website, Mapping, Streamer |
+
+Harga ditulis sebagai angka **tanpa titik dan tanpa Rp**, contoh `10000`.
+Isi `null` kalau belum ada harga resmi → otomatis tampil **Custom Pricing**.
+
+Field `status` bisa:
+
+| Nilai | Tampil sebagai |
+| --- | --- |
+| `available` | Available (hijau) |
+| `soon` | Coming Soon (kuning) |
+| `custom` | Custom Pricing (biru) |
+| `unavailable` | Unavailable (merah) |
+
+> Jangan menandai `available` kalau layanan sedang tidak dibuka.
+
+### 3. Produk / katalog
+
+`src/data/products.js`..Array `products` sengaja **kosong** sampai ada produk
+asli. Begitu diisi, katalog otomatis aktif: pencarian, filter kategori, dan
+modal detail. Status memakai nilai yang sama seperti di atas.
+
+### 4. Testimonial
+
+`src/data/testimonials.js`. Data contoh memakai `demo: true` dan ditampilkan
+dengan badge **Demo**, plus rating kosong (tidak ada bintang palsu).
+
+Untuk menambah review asli: salin satu objek, ubah `demo: false`, isi `name`,
+`username`, dan `rating` (angka 1–5) dengan data asli. Setelah ada review
+asli, hapus seluruh entri demo. Section otomatis menyesuaikan judulnya
+(`hasRealTestimonials`).
+
+### 5. Showcase
+
+`src/data/showcase.js`. Tempel path foto ke `image`.filtrationScreenshot
+disimpan di `public/`. Selama `image` kosong, kartu tampil sebagai placeholder
+"— screenshot belum tersedia —" dan tidak menciptakan kesan palsu.
+
+### 6. Payment
+
+`src/components/Payment.jsx` **sengaja tidak menampilkan nomor DANA/GoPay
+maupun QR code**. Filling detail ada di `src/config/site.js` (`contact`).
+Tambahkan nomor hanya setelah benar-benar siap menerima order.
+
+### 7. Warna, font, dan gaya
+
+Semua token ada di blok `@theme` pada `src/index.css`. Mengubah satu nilai
+mengubah seluruh website.
+
+> **Penting:** jangan menamai token warna `base`. Token bernama `base` akan
+> menabrak utility ukuran font `text-base`, sehingga `text-base` berubah
+> menjadi utility warna dan teks jadi tidak terlihat. Warna background utama
+> memakai nama `canvas` (`bg-canvas`).
 
 ---
 
-## Fitur
+## Design system
 
-- Navbar sticky dengan efek blur/transparan saat scroll, hamburger di mobile
-- Hero dengan statistik ( configurable ) dan mockup dashboard
-- Katalog layanan Digital Service dan SA-MP Service
-- Katalog produk dengan **search** dan **filter kategori**
-- Halaman detail produk: deskripsi, features, requirements, FAQ produk, status
-- Status produk: AVAILABLE, LIMITED, OUT OF STOCK, CUSTOM
-- Alur order 3 langkah: pilih layanan -> pilih platform -> arahkan ke Discord
-- Payment method DANA / GoPay / QRIS (nomor ditampilkan hanya setelah diisi)
-- Project showcase dengan filter kategori dan modal
-- Testimoni dengan rating, tombol "VIEW ALL TESTIMONIALS"
-- Banner promosi STUDENT FRIENDLY PRICE dan CUSTOM REQUEST
-- FAQ accordion, about, contact, footer
-- Loading splash, toast notification, scroll-to-top button
-- Scroll reveal (fade in + slide up), menghormati `prefers-reduced-motion`
-- SEO: title, meta description, Open Graph, Twitter card, JSON-LD, semantic HTML
-- Responsive: 4/3/2/1 kolom, tombol full width di mobile, tidak ada text overflow
+| Token | Nilai | Dipakai untuk |
+| --- | --- | --- |
+| `canvas` | `#313338` | background utama halaman |
+| `raised` | `#2B2D31` | navbar, footer, section sekunder |
+| `surface` | `#1E1F22` | card, modal, panel |
+| `well` | `#17181A` | input, area tenggelam |
+| `line` | `#3F4147` | border utama |
+| `ink` | `#F2F3F5` | teks utama |
+| `muted` | `#B5BAC1` | teks sekunder |
+| `faint` | `#9A9EA3` | teks tersier |
+| `brand` | `#FF8A00` | aksen orange |
+| `brand-hover` | `#FF9F2D` | hover |
+| `brand-ink` | `#1A1206` | teks di atas orange |
 
----
+Font: **Sora** (judul), **Plus Jakarta Sans** (body), **JetBrains Mono** (angka/harga).
+Radius kecil `10px` — tampilan Discord, bukan pill besar.
+Status punya warna sendiri-sendiri; hanya `custom` yang ungu, itu disengaja.
 
-## Alur Order
-
-Sengaja tanpa payment gateway dan tanpa database. Alurnya:
-
-1. User memilih layanan / produk
-2. Klik **ORDER** -> muncul modal 3 langkah
-3. User isi detail request (opsional) dan pilih platform (Discord, WhatsApp,
-   TikTok, Instagram, YouTube)
-4. Detail order bisa disalin ke clipboard lalu dikirim ke admin
-
-Admin yang mengeksekusi pembayaran secara manual lewat DANA / GoPay / QRIS
-setelah detail pesanan dikonfirmasi.
+Animasi memakai `animate-rise` / `animate-fade` dan otomatis dimatikan kalau
+pengguna mengaktifkan *reduced motion*.
 
 ---
 
-## Catatan Teknis
+## Section halaman
 
-- Tidak ada library UI, ikon, atau animasi eksternal. Semua SVG ikon ada di
-  `src/components/Icons.jsx`.
-- Animasi hanya transform + opacity, jadi ringan untuk perangkat low-end.
-- Kalau `npm install` memberi peringatan `allow-scripts` untuk `esbuild` di
-  npm 11, jalankan `npm approve-scripts esbuild` lalu install ulang.
-- Belum ada login, admin dashboard, payment gateway, atau database.
+`Home` · `Services` · `SA-MP` · `Other Services` · `Products` · `Pricing` ·
+`Showcase` · `Testimonials` · `How To Order` · `Payment` · `FAQ` · `CTA/Contact`
+
+Navigasi bisa juga dibuka langsung lewat hash, misal
+`http://localhost:8080/#pricing`.
+
+---
+
+## Checklist sebelum publish
+
+- [ ] `discord` di `src/config/site.js` diganti invite asli
+- [ ] `social` (TikTok / WhatsApp) diisi, atau dibiarkan placeholder
+- [ ] Nomor pembayaran diisi di `src/components/Payment.jsx`
+- [ ] `src/data/products.js` diisi produk asli (hapus array kosong)
+- [ ] Testimonial demo diganti review asli
+- [ ] Screenshot showcase ditempel ke `public/`
+- [ ] Harga dan `status` setiap layanan sudah dikonfirmasi
+- [ ] `npm run build` dan `npm run verify` lolos

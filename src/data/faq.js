@@ -1,58 +1,30 @@
-/**
- * ============================================================
- *  DATA FAQ
- *  Tambah pertanyaan baru cukup dengan menambah objek baru di array.
- * ============================================================
- */
-
 export const faqs = [
   {
-    id: 'f1',
-    question: 'Apakah harga bisa nego?',
-    answer:
-      'Harga dapat disesuaikan berdasarkan kebutuhan dan tingkat kesulitan project.',
-  },
-  {
-    id: 'f2',
+    id: 'custom',
     question: 'Apakah bisa request custom?',
-    answer: 'Bisa. Silakan jelaskan kebutuhan kepada admin.',
-  },
-  {
-    id: 'f3',
-    question: 'Bagaimana cara order?',
-    answer: 'Klik tombol Order dan lanjutkan melalui Discord.',
-  },
-  {
-    id: 'f4',
-    question: 'Apakah menerima project SA-MP?',
     answer:
-      'Ya, tersedia berbagai layanan SA-MP seperti coding, textdraw, filescript, mapping, streamer, dan on-server.',
+      'Ya, beberapa layanan dapat disesuaikan berdasarkan kebutuhan customer.',
   },
   {
-    id: 'f5',
-    question: 'Apakah menerima jasa Discord?',
-    answer: 'Ya, tersedia Discord Setup dan Custom Discord Bot.',
+    id: 'order-discord',
+    question: 'Apakah bisa order melalui Discord?',
+    answer: 'Ya. Customer dapat melakukan order melalui Discord APISZ STORE.',
   },
   {
-    id: 'f6',
-    question: 'Kapan pembayaran dilakukan?',
-    answer: 'Pembayaran dilakukan setelah detail pesanan dikonfirmasi oleh admin.',
-  },
-  {
-    id: 'f7',
-    question: 'Berapa lama pengerjaan project?',
+    id: 'harga-berubah',
+    question: 'Apakah harga bisa berubah?',
     answer:
-      'Tergantung kompleksitas project. Estimasi waktu diberikan setelah admin menerima detail request.',
+      'Harga dapat berbeda berdasarkan tingkat kesulitan dan kebutuhan custom.',
   },
   {
-    id: 'f8',
-    question: 'Apakah ada garansi atau revisi?',
+    id: 'layanan-samp',
+    question: 'Apakah tersedia layanan untuk SA-MP?',
+    answer: 'Ya, APISZ STORE menyediakan berbagai layanan SA-MP.',
+  },
+  {
+    id: 'cara-order',
+    question: 'Bagaimana cara melakukan order?',
     answer:
-      'Ada revisi sesuai kesepakatan sebelum project dinyatakan selesai. Perubahan yang diminta di luar kesepakatan dihitung sebagai request tambahan.',
-  },
-  {
-    id: 'f9',
-    question: 'Apakah support tersedia setelah order selesai?',
-    answer: 'Ya, tersedia bantuan setelah project selesai untuk pertanyaan terkait hasilnya.',
+      'Pilih layanan atau produk kemudian klik Order Now untuk melanjutkan proses pemesanan.',
   },
 ];

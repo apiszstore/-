@@ -1,19 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0a0a0b" />
-      <stop offset="1" stop-color="#1c1710" />
-    </linearGradient>
-    <linearGradient id="ac" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#FFC24A" />
-      <stop offset="1" stop-color="#E0662B" />
-    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="8%" r="70%">
+      <stop offset="0%" stop-color="#FF8A00" stop-opacity="0.28" />
+      <stop offset="100%" stop-color="#FF8A00" stop-opacity="0" />
+    </radialGradient>
   </defs>
-  <rect width="1200" height="630" fill="url(#bg)" />
-  <circle cx="980" cy="120" r="220" fill="#FFB020" opacity="0.10" />
-  <circle cx="200" cy="540" r="240" fill="#E0662B" opacity="0.10" />
-  <text x="100" y="250" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="92" font-weight="800" fill="url(#ac)" letter-spacing="4">APISZ</text>
-  <text x="100" y="340" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="92" font-weight="800" fill="#F2F1EE" letter-spacing="4">STORE</text>
-  <text x="100" y="405" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-weight="500" fill="#9A9891">Digital Service &amp; SA-MP Service</text>
-  <text x="100" y="470" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="400" fill="#6D6B66">Jasa Digital, Discord, dan SA-MP untuk pelajar.</text>
+
+  <rect width="1200" height="630" fill="#313338" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+
+  <g opacity="0.5" stroke="#3F4147" stroke-width="1">
+    <path d="M0 158h1200M0 316h1200M0 474h1200" />
+    <path d="M300 0v630M600 0v630M900 0v630" />
+  </g>
+
+  <rect x="90" y="196" width="72" height="72" rx="16" fill="#1E1F22" stroke="#3F4147" stroke-width="2" />
+  <path d="M110 250V214h6.6l16.4 21.4V214h6.6v36h-6.6L116 228.6V250H110z" fill="#F2F3F5" />
+  <rect x="140" y="206" width="11" height="11" rx="3" fill="#FF8A00" />
+
+  <text x="90" y="360" font-family="Sora, Segoe UI, sans-serif" font-size="76" font-weight="700" fill="#F2F3F5">
+    APISZ <tspan fill="#FF8A00">STORE</tspan>
+  </text>
+
+  <text x="90" y="416" font-family="Plus Jakarta Sans, Segoe UI, sans-serif" font-size="27" fill="#B5BAC1">
+    Digital Service &amp; SA-MP Solutions
+  </text>
+
+  <rect x="90" y="466" width="252" height="56" rx="10" fill="#FF8A00" />
+  <text x="216" y="503" font-family="Plus Jakarta Sans, Segoe UI, sans-serif" font-size="21" font-weight="700" fill="#1A1206" text-anchor="middle">
+    Order Now
+  </text>
+
+  <rect x="362" y="466" width="252" height="56" rx="10" fill="none" stroke="#FF8A00" stroke-opacity="0.5" stroke-width="2" />
+  <text x="488" y="503" font-family="Plus Jakarta Sans, Segoe UI, sans-serif" font-size="21" font-weight="600" fill="#FF8A00" text-anchor="middle">
+    Explore
+  </text>
 </svg>

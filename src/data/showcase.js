@@ -1,93 +1,66 @@
 /**
- * ============================================================
- *  DATA SHOWCASE / PROJECT
- * ============================================================
- *  image: isi URL gambar. Kosongkan untuk memakai placeholder otomatis.
- *  Ganti proyek contoh ini dengan project asli nanti.
- * ============================================================
+ * Showcase / galeri project.
+ *
+ * CARA MENGGANTI GAMBAR:
+ *  Taruh file di /public/showcase/, lalu ubah `image` jadi
+ *  '/showcase/nama-file.png'.
+ *
+ *  Kalau `image` null, kartu memakai placeholder berlabel kategori
+ *  supaya tidak menampilkan gambar yang tidak relevan.
  */
 
-export const showcaseCategories = ['All', 'Discord', 'SA-MP', 'Textdraw', 'Website', 'Bot'];
+export const showcaseCategories = ['All', 'SA-MP', 'Discord', 'Bot', 'Website', 'UI'];
 
-export const showcaseProjects = [
+export const showcaseFilters = ['All', 'SA-MP', 'Discord', 'Bot', 'Website', 'UI'];
+
+export const showcaseItems = [
   {
-    id: 's1',
-    name: 'Discord Store Server',
+    id: 's-textdraw',
+    title: 'Textdraw Pack',
+    category: 'SA-MP',
+    image: null,
+    note: 'Contoh kategori Textdraw',
+  },
+  {
+    id: 's-speedometer',
+    title: 'Speedometer',
+    category: 'UI',
+    image: null,
+    note: 'Contoh kategori UI',
+  },
+  {
+    id: 's-hud',
+    title: 'HUD',
+    category: 'SA-MP',
+    image: null,
+    note: 'Contoh kategori HUD',
+  },
+  {
+    id: 's-discord',
+    title: 'Discord Server',
     category: 'Discord',
-    icon: 'discord',
-    image: '',
-    description: 'Server toko digital dengan katalog produk, role buyer, dan embed tiap layanan.',
+    image: null,
+    note: 'Contoh kategori Discord',
   },
   {
-    id: 's2',
-    name: 'Moderation Bot v2',
+    id: 's-bot',
+    title: 'Custom Bot',
     category: 'Bot',
-    icon: 'shield',
-    image: '',
-    description: 'Bot moderasi dengan sistem warning, log channel, dan auto punishment.',
+    image: null,
+    note: 'Contoh kategori Custom Bot',
   },
   {
-    id: 's3',
-    name: 'RP Server Onboarding',
-    category: 'SA-MP',
-    icon: 'server',
-    image: '',
-    description: 'Setup server SA-MP: rename, set admin, dan starterpack untuk pemain baru.',
-  },
-  {
-    id: 's4',
-    name: 'Custom Speedometer',
-    category: 'Textdraw',
-    icon: 'gauge',
-    image: '',
-    description: 'Speedometer HUD dengan animasi RPM, gear, dan indikator kecepatan.',
-  },
-  {
-    id: 's5',
-    name: 'Landing Page Portfolio',
+    id: 's-website',
+    title: 'Website',
     category: 'Website',
-    icon: 'layout',
-    image: '',
-    description: 'Landing page ringan dan responsif untuk portofolio project(movie) sekolah.',
+    image: null,
+    note: 'Contoh kategori Website',
   },
   {
-    id: 's6',
-    name: 'Ticket Support System',
-    category: 'Bot',
-    icon: 'chat',
-    image: '',
-    description: 'Sistem ticket dengan panel, transcript otomatis, dan claim oleh staff.',
-  },
-  {
-    id: 's7',
-    name: 'Interior Station Mapping',
+    id: 's-mapping',
+    title: 'Mapping',
     category: 'SA-MP',
-    icon: 'home',
-    image: '',
-    description: 'Interior stasiun dengan denah custom, object placement, dan akses pintu.',
-  },
-  {
-    id: 's8',
-    name: 'Filescript UI Library',
-    category: 'SA-MP',
-    icon: 'sliders',
-    image: '',
-    description: 'Kumpulan UI system sebagai filescript supaya mudah dipakai di banyak server.',
-  },
-  {
-    id: 's9',
-    name: 'SA-MP Streamer Pack',
-    category: 'SA-MP',
-    icon: 'stream',
-    image: '',
-    description: 'Streamer promosi server SA-MP dengan banner animasi dan jadwal upload.',
-  },
-  {
-    id: 's10',
-    name: 'Garage UI Textdraw',
-    category: 'Textdraw',
-    icon: 'garage',
-    image: '',
-    description: 'UI garage untuk memilih, menyimpan, dan melihat kendaraan milik player.',
+    image: null,
+    note: 'Contoh kategori Mapping',
   },
 ];

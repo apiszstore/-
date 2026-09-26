@@ -1,50 +1,67 @@
 import { useState } from 'react';
-import { faqs } from '../data/faq';
-import Icon from './Icons';
-import Reveal from './Reveal';
-import SectionHeading from './SectionHeading';
+import { faqs } from '../data/faq.js';
+import { useOrder } from '../hooks/useOrder.js';
+import Button from './Button.jsx';
+import Icon from './Icon.jsx';
+import Reveal from './Reveal.jsx';
+import Section from './Section.jsx';
+import SectionHeading from './SectionHeading.jsx';
 
-/** Section FAQ dengan accordion (hanya satu terbuka pada satu waktu). */
 export default function Faq() {
-  const [open, setOpen] = useState(0);
+  const [open, setOpen] = useState(faqs[0]?.id ?? null);
+  const order = useOrder();
 
   return (
-    <section className="section faq" id="faq">
-      <div className="container container--narrow">
-        <Reveal>
+    <Section id="faq" tone="base">
+      <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
+        <div>
           <SectionHeading
             eyebrow="FAQ"
-            title="FREQUENTLY ASKED"
-            subtitle="Pertanyaan yang sering masuk. Kalau tidak ada jawabannya, langsung chat admin."
+            title="Frequently Asked Questions"
+            subtitle="Pertanyaan yang paling sering masuk. Kalau belum terjawab, tanya langsung lewat Discord."
           />
-        </Reveal>
+          <Button size="md" icon="cart" onClick={() => order()} className="mt-6">
+            Order Now
+          </Button>
+        </div>
 
-        <Reveal delay={70}>
-          <div className="accordion">
-            {faqs.map((item, index) => {
-              const isOpen = open === index;
-              return (
-                <div className={`accordion__item card ${isOpen ? 'is-open' : ''}`} key={item.id}>
+        <div className="divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
+          {faqs.map((faq, index) => {
+            const expanded = open === faq.id;
+            return (
+              <Reveal key={faq.id} delay={index * 45}>
+                <h3>
                   <button
                     type="button"
-                    className="accordion__trigger"
-                    onClick={() => setOpen(isOpen ? -1 : index)}
-                    aria-expanded={isOpen}
+                    onClick={() => setOpen(expanded ? null : faq.id)}
+                    aria-expanded={expanded}
+                    aria-controls={`faq-panel-${faq.id}`}
+                    className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-brand/[0.04]"
                   >
-                    <span className="accordion__q">{item.question}</span>
-                    <span className="accordion__icon">
-                      <Icon name="chevronDown" size={18} />
+                    <span className="text-[14.5px] font-semibold">{faq.question}</span>
+                    <span
+                      className={`grid size-7 shrink-0 place-items-center rounded-full border border-line text-brand transition-transform duration-200 ${
+                        expanded ? 'rotate-180 border-brand/45' : ''
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <Icon name="chevronDown" size={15} />
                     </span>
                   </button>
-                  <div className="accordion__panel">
-                    <p>{item.answer}</p>
-                  </div>
+                </h3>
+
+                <div
+                  id={`faq-panel-${faq.id}`}
+                  hidden={!expanded}
+                  className="px-5 pb-4.5 text-[13.5px] leading-relaxed text-muted"
+                >
+                  {faq.answer}
                 </div>
-              );
-            })}
-          </div>
-        </Reveal>
+              </Reveal>
+            );
+          })}
+        </div>
       </div>
-    </section>
+    </Section>
   );
 }

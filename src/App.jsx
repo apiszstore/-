@@ -1,111 +1,66 @@
 import { useEffect } from 'react';
-import { useApp } from './context/AppContext';
-import About from './components/About';
-import Contact from './components/Contact';
-import DigitalService from './components/DigitalService';
-import Faq from './components/Faq';
-import Footer from './components/Footer';
-import Hero from './components/Hero';
-import Loader from './components/Loader';
-import Navbar from './components/Navbar';
-import OrderModal from './components/OrderModal';
-import Payment from './components/Payment';
-import Pricing from './components/Pricing';
-import ProductCatalog from './components/ProductCatalog';
-import ProductDetail from './components/ProductDetail';
-import Promotion from './components/Promotion';
-import SampServices from './components/SampServices';
-import ScrollToTop from './components/ScrollToTop';
-import Services from './components/Services';
-import Showcase from './components/Showcase';
-import Testimonials from './components/Testimonials';
-import { HOME_SECTIONS } from './lib/sections';
-
-/** Daftar section di halaman Home (urutan tampil). */
-const HOME_BLOCKS = [
-  ['services', Services],
-  ['digital', DigitalService],
-  ['samp', SampServices],
-  ['pricing', Pricing],
-  ['payment', Payment],
-  ['showcase', Showcase],
-  ['testimonials', Testimonials],
-  ['about', About],
-  ['faq', Faq],
-  ['contact', Contact],
-];
-
-function Home() {
-  return (
-    <>
-      <Hero />
-      {HOME_BLOCKS.map(([id, Block]) => (
-        <Block key={id} />
-      ))}
-      <Promotion />
-    </>
-  );
-}
-
-function NotFound() {
-  return (
-    <section className="section">
-      <div className="container">
-        <div className="empty">
-          <h3>Halaman tidak ditemukan</h3>
-          <p>URL yang kamu buka tidak tersedia di website ini.</p>
-          <a className="btn btn--primary btn--sm" href="#/">
-            Kembali ke Home
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
+import Navbar from './components/Navbar.jsx';
+import Hero from './components/Hero.jsx';
+import QuickInfo from './components/QuickInfo.jsx';
+import Services from './components/Services.jsx';
+import SampServices from './components/SampServices.jsx';
+import OtherServices from './components/OtherServices.jsx';
+import ProductCatalog from './components/ProductCatalog.jsx';
+import Pricing from './components/Pricing.jsx';
+import Showcase from './components/Showcase.jsx';
+import Testimonials from './components/Testimonials.jsx';
+import HowToOrder from './components/HowToOrder.jsx';
+import Payment from './components/Payment.jsx';
+import Faq from './components/Faq.jsx';
+import CtaSection from './components/CtaSection.jsx';
+import Footer from './components/Footer.jsx';
+import Toaster from './components/Toaster.jsx';
+import { scrollToSection } from './lib/scroll.js';
 
 export default function App() {
-  const { route, ready, markReady } = useApp();
-
-  /* Splash screen minimal supaya transisi awal tidak terasa kosong. */
+  /* Deep link: buka #products langsung scroll ke section itu.
+     Scroll ditunda satu frame supaya section sudah ter-render. */
   useEffect(() => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const timer = setTimeout(markReady, reduce ? 120 : 900);
-    return () => clearTimeout(timer);
-  }, [markReady]);
+    const applyHash = () => {
+      const id = window.location.hash.replace('#', '');
+      if (!id) return;
+      requestAnimationFrame(() => scrollToSection(id));
+    };
 
-  /* Ubah judul tab sesuai halaman. */
-  useEffect(() => {
-    if (route === '/products') {
-      document.title = 'Store / Products - APISZ STORE';
-    } else if (route.startsWith('/product/')) {
-      document.title = 'Detail Produk - APISZ STORE';
-    } else {
-      document.title = 'APISZ STORE - Digital Service & SA-MP Service';
-    }
-  }, [route]);
-
-  const isProductDetail = route.startsWith('/product/');
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
 
   return (
     <>
-      <Loader visible={!ready} />
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-ink"
+      >
+        Lewati ke konten utama
+      </a>
+
       <Navbar />
 
       <main id="main">
-        {isProductDetail ? (
-          <ProductDetail productId={route.replace('/product/', '')} />
-        ) : route === '/products' ? (
-          <ProductCatalog />
-        ) : route !== '/' && !HOME_SECTIONS.includes(route.replace(/^\//, '')) ? (
-          <NotFound />
-        ) : (
-          <Home />
-        )}
+        <Hero />
+        <QuickInfo />
+        <Services />
+        <SampServices />
+        <OtherServices />
+        <ProductCatalog />
+        <Pricing />
+        <Showcase />
+        <Testimonials />
+        <HowToOrder />
+        <Payment />
+        <Faq />
+        <CtaSection />
       </main>
 
       <Footer />
-      <OrderModal />
-      <ScrollToTop />
+      <Toaster />
     </>
   );
 }

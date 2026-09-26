@@ -1,191 +1,64 @@
-import { useApp } from '../context/AppContext';
-import Button from './Button';
-import Icon from './Icons';
-import Reveal from './Reveal';
+import { siteConfig } from '../config/site.js';
+import { scrollToSection } from '../lib/scroll.js';
+import Button from './Button.jsx';
+import Icon from './Icon.jsx';
+import HeroMockup from './HeroMockup.jsx';
 
-/** Mockup dashboard/store, dibuat dengan CSS supaya ringan tanpa file gambar. */
-function StoreMockup() {
-  const rows = [
-    { name: 'Discord Server Setup', price: 'Rp10.000', tone: 'blue' },
-    { name: 'Custom Discord Bot', price: 'Rp20.000', tone: 'violet' },
-    { name: 'Jasa On Server', price: 'Rp5.000', tone: 'cyan' },
-  ];
-
-  return (
-    <div className="mockup" aria-hidden="true">
-      <div className="mockup__glow" />
-      <div className="mockup__window">
-        <div className="mockup__bar">
-          <span className="mockup__dots">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="mockup__url">apisz.store</span>
-        </div>
-        <div className="mockup__body">
-          <div className="mockup__side">
-            <span className="mockup__side-title">APISZ</span>
-            <span className="mockup__side-item is-active" />
-            <span className="mockup__side-item" />
-            <span className="mockup__side-item" />
-            <span className="mockup__side-item" />
-            <span className="mockup__side-item" />
-          </div>
-          <div className="mockup__main">
-            <div className="mockup__head">
-              <div>
-                <span className="mockup__kicker">STORE</span>
-                <span className="mockup__title">Layanan Digital</span>
-              </div>
-              <span className="mockup__pill">OPEN</span>
-            </div>
-            <div className="mockup__stats">
-              <div className="mockup__stat">
-                <span className="mockup__stat-value">50+</span>
-                <span className="mockup__stat-label">Projects</span>
-              </div>
-              <div className="mockup__stat">
-                <span className="mockup__stat-value">30+</span>
-                <span className="mockup__stat-label">Customers</span>
-              </div>
-              <div className="mockup__stat">
-                <span className="mockup__stat-value">10+</span>
-                <span className="mockup__stat-label">Services</span>
-              </div>
-            </div>
-            <div className="mockup__rows">
-              {rows.map((row) => (
-                <div className="mockup__row" key={row.name}>
-                  <span className={`mockup__row-icon mockup__row-icon--${row.tone}`}>
-                    <Icon name="spark" size={14} />
-                  </span>
-                  <span className="mockup__row-name">{row.name}</span>
-                  <span className="mockup__row-price">{row.price}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mockup__chart">
-              <span style={{ height: '38%' }} />
-              <span style={{ height: '62%' }} />
-              <span style={{ height: '48%' }} />
-              <span style={{ height: '80%' }} />
-              <span style={{ height: '58%' }} />
-              <span style={{ height: '92%' }} />
-              <span style={{ height: '70%' }} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mockup__float mockup__float--a">
-        <span className="mockup__float-icon">
-          <Icon name="check" size={14} />
-        </span>
-        <span>
-          <strong>Order received</strong>
-          <small>via Discord ticket</small>
-        </span>
-      </div>
-      <div className="mockup__float mockup__float--b">
-        <span className="mockup__float-icon mockup__float-icon--alt">
-          <Icon name="bolt" size={14} />
-        </span>
-        <span>
-          <strong>Fast response</strong>
-          <small>student friendly</small>
-        </span>
-      </div>
-    </div>
-  );
-}
+const QUICK_LINKS = [
+  { label: 'Discord Setup', icon: 'server' },
+  { label: 'Custom Bot', icon: 'bot' },
+  { label: 'SA-MP', icon: 'terminal' },
+  { label: 'Website', icon: 'globe' },
+];
 
 export default function Hero() {
-  const { config, navigate, openOrder } = useApp();
-
   return (
-    <section className="hero" id="home">
-      <div className="hero__bg" aria-hidden="true">
-        <span className="hero__orb hero__orb--1" />
-        <span className="hero__orb hero__orb--2" />
-        <span className="hero__grid" />
-      </div>
+    <section id="home" className="glow-field relative overflow-hidden border-b border-line bg-canvas">
+      <div className="grid-lines pointer-events-none absolute inset-0" aria-hidden="true" />
 
-      <div className="container hero__inner">
-        <div className="hero__content">
-          <Reveal>
-            <span className="pill">
-              <Icon name="spark" size={14} />
-              {config.tagline}
-            </span>
-          </Reveal>
-
-          <Reveal delay={60}>
-            <h1 className="hero__title">
-              BUILD YOUR DIGITAL PROJECT WITH <span className="text-gradient">APISZ</span>
-            </h1>
-          </Reveal>
-
-          <Reveal delay={120}>
-            <p className="hero__subtitle">
-              Jasa Discord, Bot, Website, dan SA-MP dengan harga terjangkau untuk kebutuhan personal
-              maupun server.
+      <div className="container-page relative py-16 sm:py-20 lg:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+          {/* Copy */}
+          <div className="animate-rise">
+            <p className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-brand uppercase">
+              <span className="size-1.5 rounded-full bg-brand" aria-hidden="true" />
+              {siteConfig.tagline}
             </p>
-          </Reveal>
 
-          <Reveal delay={180}>
-            <div className="hero__actions">
-              <Button
-                type="primary"
-                size="lg"
-                icon={<Icon name="ticket" size={18} />}
-                onClick={() => openOrder({ title: 'Custom Request' })}
-              >
-                ORDER NOW
+            <h1 className="mt-6 text-4xl leading-[1.08] font-bold sm:text-5xl lg:text-[3.4rem]">
+              Build Your Digital World With{' '}
+              <span className="text-brand">APISZ STORE</span>
+            </h1>
+
+            <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-muted sm:text-base">
+              Solusi digital untuk kebutuhan Discord, Custom Bot, Website, dan SA-MP dengan harga terjangkau dan
+              proses yang mudah.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button size="lg" iconRight="arrowRight" onClick={() => scrollToSection('services')}>
+                Explore Services
               </Button>
-              <Button
-                type="outline"
-                size="lg"
-                icon={<Icon name="layout" size={18} />}
-                onClick={() => navigate('/services')}
-              >
-                VIEW SERVICES
+              <Button size="lg" variant="outline" onClick={() => scrollToSection('products')}>
+                View Products
               </Button>
             </div>
-          </Reveal>
 
-          <Reveal delay={240}>
-            <div className="hero__note">
-              <Icon name="info" size={16} />
-              <span>{config.shortDescription}</span>
-            </div>
-          </Reveal>
-
-          <Reveal delay={300}>
-            <ul className="hero__stats">
-              {config.stats.map((stat) => (
-                <li className="hero__stat" key={stat.id}>
-                  <span className="hero__stat-value">{stat.value}</span>
-                  <span className="hero__stat-label">{stat.label}</span>
+            <ul className="mt-9 flex flex-wrap gap-x-5 gap-y-2.5">
+              {QUICK_LINKS.map((item) => (
+                <li key={item.label} className="flex items-center gap-1.5 text-[13px] text-faint">
+                  <Icon name={item.icon} size={14} className="text-brand/80" />
+                  {item.label}
                 </li>
               ))}
             </ul>
-          </Reveal>
+          </div>
+
+          {/* Visual */}
+          <div className="animate-fade" style={{ animationDelay: '120ms' }}>
+            <HeroMockup />
+          </div>
         </div>
-
-        <Reveal delay={140} className="hero__visual">
-          <StoreMockup />
-        </Reveal>
-      </div>
-
-      <div className="hero__bottom container">
-        <span>Discord</span>
-        <span>SA-MP</span>
-        <span>Bot</span>
-        <span>Textdraw</span>
-        <span>Filescript</span>
-        <span>Mapping</span>
-        <span>Website</span>
       </div>
     </section>
   );

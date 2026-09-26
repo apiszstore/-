@@ -1,35 +1,22 @@
 <!doctype html>
-<html lang="id" data-theme="dark">
+<html lang="id" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0a0b" />
+    <meta name="theme-color" content="#313338" />
 
-    <script>
-      /* Terapkan tema sebelum halaman digambar supaya tidak ada kedipan putih. */
-      (function () {
-        try {
-          var stored = localStorage.getItem('apisz-theme');
-          var theme =
-            stored === 'light' || stored === 'dark'
-              ? stored
-              : window.matchMedia('(prefers-color-scheme: light)').matches
-                ? 'light'
-                : 'dark';
-          document.documentElement.dataset.theme = theme;
-          document
-            .querySelector('meta[name="theme-color"]')
-            .setAttribute('content', theme === 'light' ? '#f2f0eb' : '#0a0a0b');
-        } catch (e) {
-          /* localStorage diblokir: tetap dark */
-        }
-      })();
-    </script>
+    <!-- Font: Sora (judul) + Plus Jakarta Sans (isi) + JetBrains Mono (kode) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
 
-    <title>APISZ STORE — Digital Service &amp; SA-MP Service</title>
+    <title>APISZ STORE — Digital Service &amp; SA-MP Solutions</title>
     <meta
       name="description"
-      content="APISZ STORE menyediakan jasa Discord, Custom Bot, Website, SA-MP, Textdraw, Filescript, Mapping, dan layanan digital lainnya dengan harga terjangkau."
+      content="APISZ STORE menyediakan layanan Discord, Custom Bot, Website, SA-MP, dan produk digital dengan harga terjangkau."
     />
     <meta name="author" content="APISZ STORE" />
     <meta name="robots" content="index, follow" />
@@ -38,26 +25,25 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="APISZ STORE" />
-    <meta property="og:title" content="APISZ STORE — Digital Service &amp; SA-MP Service" />
+    <meta property="og:title" content="APISZ STORE — Digital Service &amp; SA-MP Solutions" />
     <meta
       property="og:description"
-      content="Jasa Discord, Custom Bot, Website, SA-MP dengan harga terjangkau untuk pelajar."
+      content="Layanan Discord, Custom Bot, Website, SA-MP, dan produk digital dengan harga terjangkau."
     />
     <meta property="og:image" content="/og-image.svg" />
     <meta property="og:url" content="https://apiszstore.com/" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="APISZ STORE — Digital Service &amp; SA-MP Service" />
+    <meta name="twitter:title" content="APISZ STORE — Digital Service &amp; SA-MP Solutions" />
     <meta
       name="twitter:description"
-      content="Jasa Discord, Custom Bot, Website, SA-MP dengan harga terjangkau untuk pelajar."
+      content="Layanan Discord, Custom Bot, Website, SA-MP, dan produk digital dengan harga terjangkau."
     />
     <meta name="twitter:image" content="/og-image.svg" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate icon" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
 
     <!-- Structured data -->
@@ -67,15 +53,17 @@
         "@type": "Store",
         "name": "APISZ STORE",
         "alternateName": "APISZ Digital Service",
-        "description": "Digital service store yang menyediakan layanan Discord, development, website, dan SA-MP dengan harga terjangkau.",
-        "slogan": "Digital Service & SA-MP Service",
+        "description": "Digital service store untuk kebutuhan Discord, development, website, dan SA-MP.",
+        "slogan": "Digital Service & SA-MP Solutions",
         "url": "https://apiszstore.com/"
       }
     </script>
   </head>
   <body>
     <div id="root"></div>
-    <noscript>Website ini membutuhkan JavaScript. Silakan hubungi APISZ STORE melalui Discord.</noscript>
+    <noscript>
+      Website ini membutuhkan JavaScript. Silakan hubungi APISZ STORE melalui Discord.
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

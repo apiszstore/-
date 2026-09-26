@@ -1,26 +1,26 @@
 import { useState } from 'react';
-import { digitalServices } from '../data/services.js';
+import { otherServices } from '../data/otherServices.js';
 import { useOrder } from '../hooks/useOrder.js';
-import ServiceDetailModal from './ServiceDetailModal.jsx';
-import ServiceCard from './ServiceCard.jsx';
+import Reveal from './Reveal.jsx';
 import Section from './Section.jsx';
 import SectionHeading from './SectionHeading.jsx';
-import Reveal from './Reveal.jsx';
+import ServiceCard from './ServiceCard.jsx';
+import ServiceDetailModal from './ServiceDetailModal.jsx';
 
-export default function Services() {
+export default function OtherServices() {
   const [active, setActive] = useState(null);
   const order = useOrder();
 
   return (
-    <Section id="services" tone="base">
+    <Section id="other" tone="base">
       <SectionHeading
-        eyebrow="Digital Service"
-        title="What We Offer"
-        subtitle="Berbagai layanan digital untuk membantu kebutuhan project dan komunitas kamu."
+        eyebrow="Other Services"
+        title="Layanan Lainnya"
+        subtitle="Sedang dikembangkan. Harga dan detailnya akan diumumkan setelah siap."
       />
 
       <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {digitalServices.map((service, index) => (
+        {otherServices.map((service, index) => (
           <Reveal key={service.id} delay={index * 70} className="h-full">
             <ServiceCard service={service} onViewDetails={setActive} />
           </Reveal>

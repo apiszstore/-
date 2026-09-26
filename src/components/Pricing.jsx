@@ -1,88 +1,88 @@
-import { useState } from 'react';
-import { bundlePackages } from '../data/services';
-import { useApp } from '../context/AppContext';
-import Icon from './Icons';
-import Reveal from './Reveal';
-import SectionHeading from './SectionHeading';
+import { CUSTOM_PRICING_LABEL, pricingRows, pricingCustomRows } from '../data/pricing.js';
+import { priceLabel } from '../lib/format.js';
+import { useOrder } from '../hooks/useOrder.js';
+import Button from './Button.jsx';
+import Icon from './Icon.jsx';
+import Reveal from './Reveal.jsx';
+import Section from './Section.jsx';
+import SectionHeading from './SectionHeading.jsx';
 
-/** Section PRICING: paket bundle Discord. */
+/**
+ * Tabel harga.
+ *
+ * Semua baris diambil dari data layanan, jadi mengubah `price`
+ * di src/data/*.js otomatis memperbarui section ini.
+ * Layanan tanpa harga ditampilkan sebagai "Custom Pricing".
+ */
 export default function Pricing() {
-  const { openOrder } = useApp();
-  const [active, setActive] = useState(bundlePackages.packages[1].id);
-  const pkg = bundlePackages.packages.find((p) => p.id === active) || bundlePackages.packages[0];
+  const order = useOrder();
+
+  const customRows = pricingCustomRows;
 
   return (
-    <section className="section pricing" id="pricing">
-      <div className="container">
-        <Reveal>
-          <SectionHeading
-            eyebrow="BUNDLE"
-            title="DISCORD BUNDLE SERVICE"
-            subtitle="Paket gabungan Discord Setup + Bot. Pilih yang paling sesuai dengan kebutuhanmu."
-          />
-        </Reveal>
+    <Section id="pricing" tone="base">
+      <SectionHeading
+        eyebrow="Pricing"
+        title="Simple & Affordable Pricing"
+        subtitle="Harga di bawah adalah harga mulai. Harga final bisa berbeda sesuai tingkat kesulitan dan kebutuhan custom."
+        align="center"
+      />
 
-        <div className="grid grid--3">
-          {bundlePackages.packages.map((item, index) => (
-            <Reveal key={item.id} delay={index * 70}>
-              <article
-                className={`card price-card ${item.popular ? 'is-popular' : ''} ${
-                  item.id === active ? 'is-active' : ''
-                }`}
-                onClick={() => setActive(item.id)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    setActive(item.id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-pressed={item.id === active}
+      <div className="mt-10 overflow-hidden rounded-md border border-line bg-surface">
+        <table className="w-full border-collapse text-left">
+          <caption className="sr-only">Daftar harga layanan APISZ STORE</caption>
+          <thead>
+            <tr className="border-b border-line bg-raised/60">
+              <th scope="col" className="px-4 py-3 text-[11px] font-bold tracking-[0.14em] text-faint uppercase sm:px-6">
+                Service
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-right text-[11px] font-bold tracking-[0.14em] text-faint uppercase sm:px-6"
               >
-                {item.popular ? <span className="price-card__flag">POPULAR</span> : null}
-                <h3 className="price-card__name">{item.name}</h3>
-                <p className="price-card__tagline">{item.tagline}</p>
-                <div className="price-card__price">{item.priceLabel}</div>
-                <ul className="check-list check-list--sm">
-                  {item.features.map((feature) => (
-                    <li key={feature}>
-                      <Icon name="check" size={14} />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  type="button"
-                  className={`btn btn--sm ${item.id === active ? 'btn--primary' : 'btn--ghost'} price-card__btn`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    openOrder({
-                      title: `Discord Bundle - ${item.name}`,
-                      subtitle: item.tagline,
-                      price: item.priceLabel,
-                      serviceId: item.id,
-                    });
-                  }}
-                >
-                  ORDER
-                  <Icon name="arrowRight" size={15} />
-                </button>
-              </article>
-            </Reveal>
-          ))}
-        </div>
+                Starting Price
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {pricingRows.map((row) => (
+              <tr key={row.id} className="border-b border-line-soft last:border-0 transition-colors hover:bg-brand/[0.04]">
+                <th scope="row" className="px-4 py-3.5 text-[14px] font-medium sm:px-6">
+                  {row.name}
+                  <span className="mt-0.5 block text-[11.5px] font-normal text-faint">{row.group}</span>
+                </th>
+                <td className="px-4 py-3.5 text-right text-[15px] font-bold whitespace-nowrap text-brand sm:px-6">
+                  {priceLabel(row.price)}
+                </td>
+              </tr>
+            ))}
 
-        <Reveal>
-          <p className="section-note section-note--center">
-            <Icon name="info" size={16} />
-            <span>
-              Harga bundle bisa disesuaikan lagi sesuai request tambahan. Pilih paket {pkg.name} lalu
-              chat admin untuk konfirmasi.
-            </span>
-          </p>
-        </Reveal>
+            {customRows.map((row) => (
+              <tr key={row.id} className="border-b border-line-soft last:border-0">
+                <th scope="row" className="px-4 py-3.5 text-[14px] font-medium sm:px-6">
+                  {row.name}
+                  <span className="mt-0.5 block text-[11.5px] font-normal text-faint">{row.group}</span>
+                </th>
+                <td className="px-4 py-3.5 text-right text-[14px] whitespace-nowrap text-muted sm:px-6">
+                  {CUSTOM_PRICING_LABEL}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </section>
+
+      <Reveal className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <p className="text-[13px] text-faint">Punya kebutuhan khusus? Diskusikan dulu sebelum order.</p>
+        <Button size="sm" icon="cart" onClick={() => order()}>
+          Order Now
+        </Button>
+      </Reveal>
+
+      <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[12px] text-faint">
+        <Icon name="info" size={13} />
+        Harga dalam Rupiah. Harga final bisa berbeda tergantung scope project.
+      </p>
+    </Section>
   );
 }
