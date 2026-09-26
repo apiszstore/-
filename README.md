@@ -208,61 +208,6 @@ dengan HEAD request **plus** verifikasi `content-type` `image/*`, karena
 Vite dev server menjawab HTTP 200 dengan `index.html` untuk path yang
 tidak ada — kalau cuma cek status, favicon akan tertukar ke file bogus.
 
-### 9. Deploy ke Cloudflare Pages
-
-Situs ini statis murni (tanpa router), jadi yang di-deploy hanya isi
-folder `dist` hasil `npm run build`.
-
-```bash
-npm run build
-npx wrangler pages deploy dist --project-name=apiszstore
-```
-
-Hasilnya di `https://apiszstore.pages.dev/`. Link production:
-https://apiszstore.pages.dev
-
-Script-shortcut: `npm run deploy` (production) dan
-`npm run deploy:preview` (branch `preview`, untuk tes sebelum tayang).
-
-**Autentikasi.** Butuh API token, jangan pernah di-commit:
-
-```powershell
-$env:CLOUDFLARE_API_TOKEN = "<token kamu>"
-```
-
-Token dibuat di Dashboard Cloudflare → My Profile → API Tokens →
-Create Token → template **Edit Cloudflare Workers**. WAJIB
-tambahkan permission **Cloudflare Pages: Edit**. Account ID ada di
-samping nama akun di dashboard.
-
-> Kalau token tidak ada, `wrangler pages deploy` akan gagal dengan
-> 403/1006. `wrangler whoami` dipakai untuk memastikan login benar.
-
-**Domain.** Custom domain ditambahkan lewat dashboard
-Workers & Pages → project `apiszstore` → Custom domains. Nameserver
-domain harus diarahkan ke Cloudflare lebih dulu. Karena itu
-`https://apiszstore.com/` saat ini **belum** dipakai di mana pun.
-
-**Setelah dapat domain asli**, ganti URL di tiga tempat di `index.html`
-(canonical, `og:url`, `url` di JSON-LD), lalu jalankan:
-
-```bash
-npm run check:url
-```
-
-Skrip itu gagal kalau ketiganya tidak menunjuk host yang sama — penting
-karena search engine dan WhatsApp/FB akan memakai URL berbeda dari yang
-pengunjung lihat, dan gejalanya share preview rusak.
-
-**Caching & header** diatur di `public/_headers`. Aset `/assets/*` punya
-hash di nama file jadi di-cache `immutable` selama setahun; `index.html`
-selalu `no-cache` supaya deploy baru langsung terlihat.
-
-**Preview link media sosial.** `og-image` memakai PNG 1200×630
-(`npm run og:png` untuk regenerate dari `og-image.svg`) — WhatsApp,
-Facebook, dan X **tidak** merender SVG, jadi preview-nya akan kosong
-kalau og:image berupa `.svg`.
-
 ### 8. Warna, font, dan gaya
 
 Semua token ada di blok `@theme` pada `src/index.css`. Mengubah satu nilai
@@ -292,11 +237,11 @@ mengubah seluruh website.
 | `brand-ink` | `#1A1206` | teks di atas orange |
 
 Font: **Sora** (judul), **Plus Jakarta Sans** (body), **JetBrains Mono** (angka/harga).
-Radius kecil `10px` — tampilan Discord, bukan pill besar.
+Radius kecil `10px` - tampilan Discord, bukan pill besar.
 Status punya warna sendiri-sendiri; hanya `custom` yang ungu, itu disengaja.
 
 Animasi memakai `Reveal` (opacity + translateY + scale tipis). Sengaja
-**tidak** memakai blur atau `backdrop-filter` — efek seperti itu bikin
+**tidak** memakai blur atau `backdrop-filter` - efek seperti itu bikin
 halaman terasa berat. Semua animasi dimatikan otomatis kalau pengguna
 mengaktifkan *reduced motion*, dan konten tetap tampil kalau
 `IntersectionObserver` tidak tersedia.
@@ -307,7 +252,7 @@ Dua penanda posisi supaya user selalu tahu dia sedang di bagian mana:
 
 | Fitur | Letak | Sumber |
 | --- | --- | --- |
-| Progress bar orange | tepi bawah navbar, 0–100% | `useScrollPosition()` |
+| Progress bar orange | tepi bawah navbar, 0-100% | `useScrollPosition()` |
 | Garis aksen orange | sisi atas section yang sedang aktif | `useScrollPosition()` + `Section.jsx` |
 | Menu aktif orange | navbar desktop & mobile | scroll-spy di `Navbar.jsx` |
 
@@ -320,13 +265,78 @@ bersama oleh navbar dan setiap `Section`.
 
 ## Section halaman
 
-`Home` · `Services` · `SA-MP` · `Other Services` · `Products` · `Pricing` ·
-`Showcase` · `Testimonials` · `How To Order` · `Payment` · `FAQ` · `CTA/Contact`
+`Home` -> `Services` -> `SA-MP` -> `Other Services` -> `Products` -> `Pricing` ->
+`Showcase` -> `Testimonials` -> `How To Order` -> `Payment` -> `FAQ` -> `CTA/Contact`
 
 Navigasi bisa juga dibuka langsung lewat hash, misal
 `http://localhost:8080/#pricing`.
 
 ---
+
+### 9. Deploy ke Cloudflare
+
+Situs ini **live** di:
+
+**https://apiszstore.zackahd020410.workers.dev**
+
+```bash
+npm run deploy            # build + wrangler deploy (production)
+npm run deploy:preview    # -> apiszstore-preview.<akun>.workers.dev
+```
+
+`npm run deploy` dibungkus `tools/deploy.mjs` supaya token dibaca dari
+file lalu divalidasi bentuknya sebelum dipakai. Untuk mencoba-coba
+tanpa menyentuh production, pakai `deploy:preview`.
+
+**Autentikasi.** Token dibaca dari `CLOUDFLARE_API_TOKEN`, atau dari file
+`.cloudflare-token` (sudah masuk `.gitignore`) yang isinya **hanya**
+tokennya. Jangan pernah menaruh token di source code atau commit.
+
+Token dibuat di Dashboard Cloudflare -> My Profile -> API Tokens ->
+Create Token -> template **Edit Cloudflare Workers** (wajib ada
+permission **Cloudflare Pages: Edit**).
+
+> `wrangler` otomatis memigrasikan proyek ke Cloudflare Workers: menambah
+> `@cloudflare/vite-plugin` + `wrangler` sebagai devDependency, membuat
+> `wrangler.jsonc`, dan memindahkan "Pages" ke bawah "Workers". Akibatnya
+> URL-nya `*.workers.dev`, bukan `*.pages.dev`.
+
+**Penting — `assets.not_found_handling` di `wrangler.jsonc` sengaja
+`"none"`.** Website ini tidak punya router, jadi tidak butuh fallback ke
+`index.html`. Kalau dinyalakan `single-page-application`, setiap request
+yang tidak ada dijawab `index.html` dengan status **200**, bukan 404 —
+browser lalu mencoba merender HTML sebagai gambar, dan aset yang hilang
+tidak pernah terlihat di monitoring. Aset hilang harus tetap 404.
+
+**Domain.** `apiszstore.com` belum diarahkan ke mana pun dan **tidak
+dipakai** di project ini. Custom domain ditambahkan lewat dashboard
+Workers & Pages -> project `apiszstore` -> Domains & Routes, setelah
+nameserver domain diarahkan ke Cloudflare.
+
+Setelah dapat domain asli, ganti URL di tiga tempat di `index.html`
+(canonical, `og:url`, `url` di JSON-LD), lalu jalankan `npm run check:url`.
+Skrip itu gagal kalau ketiganya tidak menunjuk host yang sama — kalau
+selisih, search engine dan WhatsApp/FB memakai URL berbeda dari yang
+pengunjung lihat, dan share preview rusak.
+
+**Verifikasi berlapis:**
+
+| Perintah | Yang diuji |
+| --- | --- |
+| `npm run verify` | dev server: layout, kontras, konten (117 cek) |
+| `npm run verify:dist` | build statis lewat static server (25 cek) |
+| `npm run verify:live` | situs live: header, SEO, aset, 404 (27 cek) |
+| `npm run check:url` | canonical / og:url / JSON-LD sinkron |
+
+**Caching & header** diatur di `public/_headers`. Aset `/assets/*` punya
+hash di nama file jadi di-cache `immutable` selama setahun; `index.html`
+selalu `no-cache` supaya deploy baru langsung terlihat. File `_headers`
+sendiri tidak serves publik (Cloudflare memakainya saat deploy).
+
+**Preview link media sosial.** `og-image` memakai PNG 1200x630
+(`npm run og:png` untuk regenerate dari `og-image.svg`) — WhatsApp,
+Facebook, dan X **tidak** merender SVG, jadi preview-nya akan kosong
+kalau og:image berupa `.svg`.
 
 ## Checklist sebelum publish
 
@@ -340,3 +350,8 @@ Navigasi bisa juga dibuka langsung lewat hash, misal
 - [ ] Screenshot showcase ditempel ke `public/`
 - [ ] Harga dan `status` setiap layanan sudah dikonfirmasi
 - [ ] `npm run build` dan `npm run verify` lolos
+- [ ] `npm run verify:dist` lolos
+- [ ] `npm run verify:live` lolos
+- [ ] `npm run check:url` menunjuk domain final
+- [ ] API token Cloudflare sudah di-revoke dan diganti (kalau sempat
+      dipublish lewat chat atau screenshot)

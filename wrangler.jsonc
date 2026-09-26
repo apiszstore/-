@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Nama ini menentukan subdomain: <name>.<account>.workers.dev
+  // Sengaja disamakan dengan "apiszstore".
+  "name": "apiszstore",
+  "compatibility_date": "2026-09-25",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    // Sengaja TIDAK memakai "single-page-application".
+    //
+    // Website ini tidak punya router: semua URL adalah "/", jadi tidak
+    // butuh fallback ke index.html. Kalau fallback dinyalakan, setiap
+    // request yang tidak ada (mis. /payment/dana.png yang belum
+    // diunggah) dijawab index.html dengan status 200 — bukan 404.
+    // Akibatnya browser mencoba men-render HTML sebagai gambar,
+    // dan monitoring tidak pernah melihat asset yang hilang.
+    //
+    // Aset yang hilang harus tetap 404 supaya kegagalannya kelihatan.
+    "not_found_handling": "none"
+  },
+  "env": {
+    // Dipakai oleh `npm run deploy:preview` -> apiszstore-preview.*.workers.dev
+    "preview": {
+      "name": "apiszstore-preview",
+      "observability": {
+        "enabled": true
+      }
+    }
+  }
+}
