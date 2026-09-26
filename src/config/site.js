@@ -19,13 +19,13 @@ export const siteConfig = {
     'APISZ STORE menyediakan layanan Discord, Custom Bot, Website, SA-MP, dan produk digital dengan harga terjangkau.',
 
   /** Ganti dengan invite Discord asli. */
-  discord: 'https://discord.gg/ISI_LINK_DISCORD',
+  discord: 'https://discord.gg/G5K3s9EPTW',
 
   social: {
-    discord: 'https://discord.gg/ISI_LINK_DISCORD',
-    tiktok: 'https://tiktok.com/@ISI_LINK_TIKTOK',
+    discord: 'https://discord.gg/G5K3s9EPTW',
+    tiktok: 'https://tiktok.com/@apiszstorecommunity',
     // Isi dengan link profil asli. Jangan pakai URL karangan.
-    instagram: 'https://instagram.com/ISI_LINK_INSTAGRAM',
+    instagram: 'https://instagram.com/apiszstorecommunity',
   },
 
   contact: {
