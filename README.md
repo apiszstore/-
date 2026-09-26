@@ -48,8 +48,9 @@ src/
 ├─ lib/            # utilitas murni: format harga, scroll, buka link
 ├─ App.jsx         # merangkai seluruh section
 └─ index.css       # design tokens (warna, font, radius, shadow)
-public/            # favicon.svg, og-image.svg
-tools/             # helper CDP untuk script verifikasi
+public/            # favicon.svg, og-image.png, _headers, brand/, payment/
+docs/              # catatan DEVELOPER (tidak ikut ter-deploy ke situs)
+tools/             # helper CDP untuk script verifikasi + generator og-image.png
 ```
 
 Aturan sederhana: **komponen tidak boleh menyimpan harga atau link langsung**,
@@ -133,6 +134,7 @@ sembunyikan barisnya supaya tidak ada bintang atau tanggal yang terasa karangan.
 ### 6. Payment
 
 `src/data/payment.js` + folder **`public/payment/`** (sudah dibuat, tinggal diisi).
+Panduan lengkap: [`docs/payment-assets.txt`](docs/payment-assets.txt).
 
 Letakkan file dengan nama persis:
 
@@ -164,7 +166,8 @@ brand: {
 },
 ```
 
-Letakkan file-nya di **`public/brand/`**:
+Letakkan file-nya di **`public/brand/`** (panduan:
+[`docs/brand-assets.txt`](docs/brand-assets.txt)):
 
 | File | Saran ukuran |
 | --- | --- |
@@ -204,6 +207,61 @@ Jadi mengunggah file Half jadi tidak merusak tampilan. Favicon dicek
 dengan HEAD request **plus** verifikasi `content-type` `image/*`, karena
 Vite dev server menjawab HTTP 200 dengan `index.html` untuk path yang
 tidak ada — kalau cuma cek status, favicon akan tertukar ke file bogus.
+
+### 9. Deploy ke Cloudflare Pages
+
+Situs ini statis murni (tanpa router), jadi yang di-deploy hanya isi
+folder `dist` hasil `npm run build`.
+
+```bash
+npm run build
+npx wrangler pages deploy dist --project-name=apiszstore
+```
+
+Hasilnya di `https://apiszstore.pages.dev/`. Link production:
+https://apiszstore.pages.dev
+
+Script-shortcut: `npm run deploy` (production) dan
+`npm run deploy:preview` (branch `preview`, untuk tes sebelum tayang).
+
+**Autentikasi.** Butuh API token, jangan pernah di-commit:
+
+```powershell
+$env:CLOUDFLARE_API_TOKEN = "<token kamu>"
+```
+
+Token dibuat di Dashboard Cloudflare → My Profile → API Tokens →
+Create Token → template **Edit Cloudflare Workers**. WAJIB
+tambahkan permission **Cloudflare Pages: Edit**. Account ID ada di
+samping nama akun di dashboard.
+
+> Kalau token tidak ada, `wrangler pages deploy` akan gagal dengan
+> 403/1006. `wrangler whoami` dipakai untuk memastikan login benar.
+
+**Domain.** Custom domain ditambahkan lewat dashboard
+Workers & Pages → project `apiszstore` → Custom domains. Nameserver
+domain harus diarahkan ke Cloudflare lebih dulu. Karena itu
+`https://apiszstore.com/` saat ini **belum** dipakai di mana pun.
+
+**Setelah dapat domain asli**, ganti URL di tiga tempat di `index.html`
+(canonical, `og:url`, `url` di JSON-LD), lalu jalankan:
+
+```bash
+npm run check:url
+```
+
+Skrip itu gagal kalau ketiganya tidak menunjuk host yang sama — penting
+karena search engine dan WhatsApp/FB akan memakai URL berbeda dari yang
+pengunjung lihat, dan gejalanya share preview rusak.
+
+**Caching & header** diatur di `public/_headers`. Aset `/assets/*` punya
+hash di nama file jadi di-cache `immutable` selama setahun; `index.html`
+selalu `no-cache` supaya deploy baru langsung terlihat.
+
+**Preview link media sosial.** `og-image` memakai PNG 1200×630
+(`npm run og:png` untuk regenerate dari `og-image.svg`) — WhatsApp,
+Facebook, dan X **tidak** merender SVG, jadi preview-nya akan kosong
+kalau og:image berupa `.svg`.
 
 ### 8. Warna, font, dan gaya
 

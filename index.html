@@ -20,7 +20,14 @@
     />
     <meta name="author" content="APISZ STORE" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://apiszstore.com/" />
+    <!-- Canonical / og:url / JSON-LD url
+         FIXME: ini masih URL sementara (Cloudflare Pages). Ganti ke domain
+         asli di 3 tempat ini sekaligus kalau domain sudah siap:
+           1. <link rel="canonical">
+           2. <meta property="og:url">
+           3. "url" di JSON-LD
+         Jalankan: npm run check:url  untuk memastikan ketiganya sinkron. -->
+    <link rel="canonical" href="https://apiszstore.pages.dev/" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -30,8 +37,10 @@
       property="og:description"
       content="Layanan Discord, Custom Bot, Website, SA-MP, dan produk digital dengan harga terjangkau."
     />
-    <meta property="og:image" content="/og-image.svg" />
-    <meta property="og:url" content="https://apiszstore.com/" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="https://apiszstore.pages.dev/" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -40,7 +49,7 @@
       name="twitter:description"
       content="Layanan Discord, Custom Bot, Website, SA-MP, dan produk digital dengan harga terjangkau."
     />
-    <meta name="twitter:image" content="/og-image.svg" />
+    <meta name="twitter:image" content="/og-image.png" />
 
     <!-- Favicon: nilai bawaan. src/lib/brand.js akan menggantinya dengan
          src/config/site.js -> brand.favicon kalau file-nya tersedia. -->
@@ -56,7 +65,7 @@
         "alternateName": "APISZ Digital Service",
         "description": "Digital service store untuk kebutuhan Discord, development, website, dan SA-MP.",
         "slogan": "Digital Service & SA-MP Solutions",
-        "url": "https://apiszstore.com/"
+        "url": "https://apiszstore.pages.dev/"
       }
     </script>
   </head>

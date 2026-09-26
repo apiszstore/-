@@ -11,7 +11,11 @@
     "verify": "node verify.mjs && node verify-contrast.mjs && node verify-content.mjs",
     "verify:layout": "node verify.mjs",
     "verify:contrast": "node verify-contrast.mjs",
-    "verify:content": "node verify-content.mjs"
+    "verify:content": "node verify-content.mjs",
+    "check:url": "node check-url.mjs",
+    "og:png": "node tools/og-png.mjs",
+    "deploy": "wrangler pages deploy dist --project-name=apiszstore",
+    "deploy:preview": "wrangler pages deploy dist --project-name=apiszstore --branch=preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
