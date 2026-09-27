@@ -9,8 +9,13 @@ import Icon from './Icon.jsx';
  * - isi modal yang scroll, bukan body
  * - body dikunci scroll selama modal terbuka
  * - Escape menutup, klik backdrop menutup, fokus dikembalikan
+ *
+ * `panelClassName` menimpa class panel kalau pemanggil butuh lebar atau
+ * tinggi yang berbeda (mis. lightbox gambar yang harus muat tanpa terpotong).
+ * Kalau diisi, class bawaan `max-w-lg` TIDAK lagi dipakai supaya tidak
+ * bertabrakan.
  */
-export default function Modal({ open, onClose, labelledBy, children }) {
+export default function Modal({ open, onClose, labelledBy, panelClassName = '', children }) {
   const panelRef = useRef(null);
   const restoreRef = useRef(null);
 
@@ -60,7 +65,7 @@ export default function Modal({ open, onClose, labelledBy, children }) {
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="relative flex max-h-[88dvh] w-full max-w-lg animate-pop flex-col overflow-hidden rounded-t-xl border border-line bg-surface shadow-lift outline-none sm:max-h-[85dvh] sm:rounded-lg"
+        className={`relative flex max-h-[88dvh] w-full animate-pop flex-col overflow-hidden rounded-t-xl border border-line bg-surface shadow-lift outline-none sm:rounded-lg ${panelClassName || 'max-w-lg sm:max-h-[85dvh]'}`}
       >
         <button
           type="button"

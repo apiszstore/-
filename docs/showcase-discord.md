@@ -18,12 +18,16 @@ Discord #digital-service ┘      token di env, di-cache        card yang sudah 
 | `api/showcase.js` | Endpoint Vercel. Baca channel, kirim JSON. Token tidak pernah keluar ke browser. |
 | `src/lib/discord.js` | `fetchShowcaseProducts()`. Paginasi mundur untuk baca histori produk lama, plus handling rate limit. |
 | `src/lib/parse-showcase.js` | Parser pesan/embed -> objek produk. Murni, tanpa import, ada testnya. |
-| `src/components/Showcase.jsx` | `useShowcase` hook. Card, filter, dan layout-nya tidak berubah. |
+| `src/components/Showcase.jsx` | `useShowcase` hook, filter, dan pemilihan grid statis vs marquee. |
+| `src/components/MarqueeTrack.jsx` | Track yang gulir ke kiri. Dipakai Showcase **dan** Testimonials, jadi aturan carousel cuma satu tempat. |
+| `src/components/ShowcaseCard.jsx` | Satu kartu. Kalau produknya punya `image`, kartunya `<button>` dan klik membuka lightbox. |
+| `src/components/ShowcaseLightbox.jsx` | Tampilan gambar ukuran penuh dengan `object-contain`, plus link ke pesan aslinya di Discord. |
+| `src/hooks/useReducedMotion.js` | Deteksi `prefers-reduced-motion`; kalau aktif, gallery jadi grid statis. |
 | `test/showcase.test.mjs` | 44 test, termasuk 8 test yang memakai `message.content` asli dari kedua channel. |
 
-Tidak ada file baru di frontend, tidak ada komponen baru, tidak ada warna
-atau class baru. Card Showcase tetap `<figure>` yang sama persis seperti
-sebelumnya — yang berubah hanya data yang masuk ke dalamnya.
+Integrasi Discord **tidak** mengubah cara gallery ditampilkan, tapi tampilannya
+sendiri sudah diganti dari grid diam menjadi marquee + lightbox. Parser dan
+endpoint tidak tahu apa-apa soal itu; keduanya cuma mengirim data.
 
 ## Format pesan
 
@@ -274,9 +278,10 @@ Tidak ada langkah manual. Kirim produk ke `#product-samp` atau
 | Endpoint error / env belum di-set | 7 placeholder + catatan "belum bisa dimuat" |
 | Satu channel error, channel lain sehat | Produk dari channel yang sehat, `channels[].error` di respons |
 
-Card, filter, layout, warna, dan animasinya tidak berubah di semua keadaan
-tersebut. Placeholder di `src/data/showcase.js` sengaja tidak dihapus, jadi
-section tidak pernah kosong.
+Filter dan warnanya tidak berubah di semua keadaan tersebut, dan cara
+tampilnya juga sama: <= 3 produk jadi grid diam, > 3 produk jadi marquee yang
+gulir ke kiri. Placeholder di `src/data/showcase.js` sengaja tidak dihapus,
+jadi section tidak pernah kosong.
 
 ## Kalau ada produk yang tidak muncul
 
@@ -305,12 +310,20 @@ pesan masih `✦ Nama Produk ✦` di baris pertama.
 
 ```bash
 npm test
+npm run verify
 ```
 
-33 test di `test/showcase.test.mjs`, termasuk skenario yang biasanya gagal:
-pesan dari kedua channel apa adanya, produk tanpa attachment, percakapan
-bukan produk, `Preview →` yang tidak boleh jadi status, harga dalam berbagai
-format, angka polos yang tidak boleh jadi harga, 11 kasus pemetaan kategori,
-paginasi mundur untuk produk lama, channel error tidak menggagalkan channel
-lain, dan nama channel gagal dibaca. Tidak ada test yang menyentuh API Discord
-sungguhan — semuanya memakai fetch tiruan.
+`npm test` menutupi parser. `npm run verify` membuka halaman sungguhan di
+Edge headless dan ikut mengecek gallery: filter tidak meluber horizontal,
+produk > 3 jadi marquee, ~3 kartu terlihat di layar 1440px, daftar digandakan
+2x dengan set kedua `inert`, ada tombol jeda, track benar-benar bergerak ke
+kiri, klik gambar membuka lightbox dengan `object-contain`, gambar muat di
+viewport, dan <= 3 produk jadi grid diam. Total 145 cek (34 + 7 + 104).
+
+`test/showcase.test.mjs` berisi 44 test, termasuk skenario yang biasanya
+gagal: pesan dari kedua channel apa adanya, produk tanpa attachment,
+percakapan bukan produk, `Preview →` yang tidak boleh jadi status, harga dalam
+berbagai format, angka polos yang tidak boleh jadi harga, kasus pemetaan
+kategori, paginasi mundur untuk produk lama, channel error tidak menggagalkan
+channel lain, dan nama channel gagal dibaca. Tidak ada test yang menyentuh API
+Discord sungguhan — semuanya memakai fetch tiruan.

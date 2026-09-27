@@ -131,6 +131,23 @@ sembunyikan barisnya supaya tidak ada bintang atau tanggal yang terasa karangan.
 `public/`. Selama `image` kosong, kartu tampil sebagai placeholder
 "— screenshot belum tersedia —" dan tidak menciptakan kesan palsu.
 
+Cara gallery-nya behave:
+
+- **1-3 produk** -> grid diam, tidak ada yang bergerak.
+- **lebih dari 3 produk** -> track berputar ke kiri, kartu baru masuk dari kanan.
+  Lebar kartu dihitung dari lebar container (`src/lib/carousel.js`), jadi
+  3 kartu terlihat di layar lebar, 2 di tablet, 1 di HP.
+- **klik gambar** -> lightbox dengan `object-contain`, jadi gambar utuh dan
+  tidak terpotong. Placeholder tanpa `image` tidak bisa diklik.
+- Gulir berhenti kalau kursor di atas area, keyboard fokus di dalam, lightbox
+  terbuka, atau tab disembunyikan. Ada tombol **Jeda gulir** karena WCAG 2.2.2
+  minta ada cara menghentikan konten yang bergerak sendiri.
+- Kalau perangkat meminta `prefers-reduced-motion`, gallery dirender sebagai
+  grid statis dan tidak bergerak sama sekali.
+
+Kode bersama carousel ada di `src/components/MarqueeTrack.jsx`; section
+Testimonials memakainya juga, jadi aturannya cuma satu tempat.
+
 ### 6. Payment
 
 `src/data/payment.js` + folder **`public/payment/`** (sudah dibuat, tinggal diisi).
@@ -403,10 +420,12 @@ integration ini ikut tampil, dan produk baru ikut muncul tanpa input manual.
 #digital-service ┘      token di env, di-cache       card yang sudah ada
 ```
 
-Card, filter, layout, warna, dan animasi Showcase **tidak berubah**. Yang
-berubah hanya data yang masuk ke dalamnya, dari placeholder ke produk asli.
-Kalau endpoint belum dikonfigurasi atau Discord sedang error, section otomatis
-jatuh ke `src/data/showcase.js` supaya tidak pernah kosong.
+Filter, warna, dan sumber datanya tetap sama. Yang berubah adalah cara
+produknya ditampilkan: gallery sekarang **gulir otomatis ke kiri** dan
+kartu bisa diklik untuk lihat gambar ukuran penuh (lihat bagian
+`### 5. Showcase`). Kalau endpoint belum dikonfigurasi atau Discord sedang
+error, section otomatis jatuh ke `src/data/showcase.js` supaya tidak pernah
+kosong.
 
 Isi channel yang dibaca:
 

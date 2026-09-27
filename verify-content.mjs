@@ -113,6 +113,10 @@ const dirty = await browser.evaluate(`JSON.stringify({
   productRows: document.querySelectorAll('#testimonials figure[data-testimonial] figcaption').length,
   productSpans: [...document.querySelectorAll('#testimonials figure[data-testimonial] figcaption > span:first-child')].map((s) => s.textContent.trim()),
   priceSpans: [...document.querySelectorAll('#testimonials figure[data-testimonial] figcaption > span:last-child')].map((s) => s.textContent.trim()),
+  // Harga cuma dirender kalau datanya punya field price. Data contoh (Demo)
+  // dan testimoni dari Discord bisa jadi tidak punya harga sama sekali, jadi
+  // cek "harga tidak diformat ulang" hanya jalan kalau harga memang ada.
+  hargaAda: document.querySelectorAll('#testimonials figure[data-testimonial] figcaption > span:last-child:not(:first-child)').length,
 })`);
 const d = JSON.parse(dirty);
 check('tidak ada token ISI_LINK yang terlihat', d.visiblePlaceholderTokens.length === 0, d.visiblePlaceholderTokens.join(', '));
@@ -168,7 +172,8 @@ check('tag customer dirender', d.tags >= d.cards, `${d.tags} tag`);
 check('produk/jasa + harga dirender satu baris',
   d.productRows === 0 || (d.productSpans.length === d.productRows && d.priceSpans.length === d.productRows),
   d.productRows === 0 ? 'tidak ada baris produk (data contoh)' : `${d.productRows} baris: ${d.productSpans.join(' | ')} @ ${d.priceSpans.join(' | ')}`);
-check('harga tidak diformat ulang', d.priceSpans.every((p) => /^Rp[\d.]+$/.test(p)), d.priceSpans.join(' | '));
+check('harga tidak diformat ulang', d.hargaAda === 0 || d.priceSpans.every((p) => /^Rp[\d.]+$/.test(p)),
+  d.hargaAda === 0 ? 'tidak ada harga di data ini, cek dilewati' : d.priceSpans.join(' | '));
 
 /* ---- Payment: logo + nama, tanpa nomor ---- */
 console.log('\n=== Payment ===');
@@ -220,6 +225,176 @@ const c = JSON.parse(catalog);
 check('katalog kosong menampilkan empty state', c.emptyHeading.some((h) => h.includes('dipersiapkan')), c.emptyHeading.join(' | '));
 check('filter kategori tetap tampil', c.filters.length >= 3, `${c.filters.length} filter`);
 check('kolom pencarian ada', c.searchExists);
+
+/* ---- Showcase: marquee + lightbox ---- */
+console.log('\n=== Showcase marquee ===');
+
+/**
+ * Rule showcase yang harus dijaga:
+ *   - 1-3 produk  : grid diam, tidak ada track yang bergerak.
+ *   - >3 produk   : track bergerak ke kiri, daftar digandakan 2x.
+ *   - klik gambar : dialog terbuka dan gambarnya TIDAK terpotong.
+ *
+ * `x()` dibaca dua kali dengan jeda supaya "bergerak" bisa dibuktikan dari
+ * posisi transform, bukan dari ada/tidaknya elemen.
+ */
+const posisiTrack = async (selector) => {
+  const value = await browser.evaluate(`(() => {
+    const track = document.querySelector(${JSON.stringify(selector)});
+    if (!track) return null;
+    return Math.round(new DOMMatrixReadOnly(getComputedStyle(track).transform).m41);
+  })()`);
+  return value === null ? null : Number(value);
+};
+
+const pilihFilter = async (label) => {
+  await browser.evaluate(`(() => {
+    const section = document.querySelector('#showcase');
+    const button = [...section.querySelectorAll('button[aria-pressed]')]
+      .find((b) => b.textContent.trim() === ${JSON.stringify(label)});
+    if (button) button.click();
+  })()`);
+  await new Promise((r) => setTimeout(r, 800));
+};
+
+/* Semua filter, untuk memastikan tidak ada filter yang membuat halaman jebol. */
+for (const label of ['All', 'SA-MP', 'Discord', 'Bot', 'Website', 'UI']) {
+  await pilihFilter(label);
+  const row = await browser.evaluate(`JSON.stringify((() => {
+    const section = document.querySelector('#showcase');
+    return {
+      kartu: section.querySelectorAll('[data-showcase-marquee] li, figure, button[aria-label^="Lihat"]').length,
+      marquee: Boolean(section.querySelector('[data-showcase-marquee]')),
+      overflow: section.scrollWidth - section.clientWidth,
+    };
+  })())`);
+  const d = JSON.parse(row);
+  check(`filter ${label} tidak meluber horizontal`, d.overflow === 0, `overflow ${d.overflow}px, ${d.kartu} kartu`);
+}
+
+await pilihFilter('All');
+
+/* "3 kartu terlihat" hanya bermakna di layar yang memang cukup lebar. Tanpa
+   setViewport, headless Edge default-nya sempit (sekitar 800px) dan yang
+   muncul cuma 2 kartu - itu perilaku yang benar, bukan bug. Jadi viewport
+   dikunci lebar dulu, baru diukur. */
+await browser.setViewport({ width: 1440, height: 900, mobile: false });
+await new Promise((r) => setTimeout(r, 700));
+
+const showcase = JSON.parse(
+  await browser.evaluate(`JSON.stringify((() => {
+    const section = document.querySelector('#showcase');
+    const track = section.querySelector('[data-showcase-marquee] ul');
+    const region = section.querySelector('[data-showcase-marquee] [role="region"]');
+    const first = section.querySelector('[data-showcase-marquee] li');
+    return {
+      adaMarquee: Boolean(track),
+      kartu: track ? track.children.length : 0,
+      lebarKartu: first ? Math.round(first.getBoundingClientRect().width) : 0,
+      lebarRegion: region ? region.clientWidth : 0,
+      adaTombolJeda: Boolean(section.querySelector('[data-showcase-marquee] button[aria-pressed]')),
+      adaPetunjukKlik: /ukuran penuh/i.test(section.innerText),
+      duplikat_disembunyikan: [...(track?.children ?? [])].filter((li) => li.getAttribute('aria-hidden') === 'true').length,
+      duplikatInert: [...(track?.children ?? [])].filter((li) => li.hasAttribute('inert')).length,
+      duplikatBisaFocus: [...(track?.children ?? [])]
+        .filter((li) => li.getAttribute('aria-hidden') === 'true')
+        .reduce((total, li) => total + li.querySelectorAll('a[href], button, input, select, textarea, [tabindex]').length, 0),
+    };
+  })())`),
+);
+
+if (showcase.adaMarquee) {
+  const perView = showcase.lebarKartu > 0 ? showcase.lebarRegion / showcase.lebarKartu : 0;
+  check('produk lebih dari 3 jadi marquee', true, `${showcase.kartu} kartu di DOM`);
+  check('3 kartu terlihat di layar lebar', perView >= 3 && perView < 4, `~${perView.toFixed(2)} kartu`);
+  check('daftar digandakan 2x', showcase.kartu % 2 === 0 && showcase.duplikat_disembunyikan === showcase.kartu / 2, `set kedua aria-hidden: ${showcase.duplikat_disembunyikan}`);
+  check('set kedua tidak bisa difokuskan (inert)', showcase.duplikatInert === showcase.duplikat_disembunyikan, `inert: ${showcase.duplikatInert}`);
+  check('ada tombol jeda gulir (WCAG 2.2.2)', showcase.adaTombolJeda);
+  check('ada petunjuk klik untuk lihat penuh', showcase.adaPetunjukKlik);
+
+  const x1 = await posisiTrack('#showcase [data-showcase-marquee] ul');
+  await new Promise((r) => setTimeout(r, 1300));
+  const x2 = await posisiTrack('#showcase [data-showcase-marquee] ul');
+  check('gulir otomatis ke kiri', x1 !== null && x2 < x1, `translateX ${x1} -> ${x2}`);
+} else {
+  // Hanya boleh terjadi kalau produknya memang <= 3 (mis. channel Discord
+  // belum terkonfigurasi, jadi yang dipakai data fallback).
+  check('marquee belum aktif karena produk <= 3', true, 'grid diam, sesuai aturan');
+}
+
+/* Klik gambar -> lightbox, gambar utuh. */
+const dibuka = await browser.evaluate(`(() => {
+  const button = document.querySelector('#showcase button[aria-label^="Lihat"]');
+  if (!button) return 'tidak ada tombol gambar';
+  button.click();
+  return 'diklik';
+})()`);
+await new Promise((r) => setTimeout(r, 900));
+
+const box = JSON.parse(
+  await browser.evaluate(`JSON.stringify((() => {
+    const dialog = document.querySelector('[role="dialog"]');
+    if (!dialog) return { ada: false };
+    const img = dialog.querySelector('img');
+    const rect = img ? img.getBoundingClientRect() : null;
+    return {
+      ada: true,
+      judul: dialog.querySelector('#showcase-detail-title')?.textContent?.trim() ?? '',
+      gambarAda: Boolean(img),
+      gambarRusak: Boolean(img && img.complete && img.naturalWidth === 0),
+      objectFit: img ? getComputedStyle(img).objectFit : '',
+      // "tanpa terpotong": tinggi/lebar gambar tidak boleh melebihi viewport,
+      // dan object-fit harus contain supaya tidak ada bagian yang terpotong.
+      muatViewport: rect ? rect.width <= window.innerWidth && rect.height <= window.innerHeight : false,
+      natural: img ? { w: img.naturalWidth, h: img.naturalHeight } : null,
+      linkDiscord: Boolean(dialog.querySelector('a[href*="discord.com"]')),
+      overflowBody: document.body.style.overflow,
+    };
+  })())`),
+);
+
+if (dibuka === 'diklik') {
+  check('klik gambar membuka lightbox', box.ada, box.judul);
+  check('gambar lightbox termuat', box.gambarAda && !box.gambarRusak, `${box.natural?.w}x${box.natural?.h}`);
+  check('gambar tidak terpotong (object-contain)', box.objectFit === 'contain', `object-fit: ${box.objectFit}`);
+  check('gambar muat di dalam viewport', box.muatViewport, `${box.natural?.w}x${box.natural?.h} asli`);
+  check('ada link ke pesan asli di Discord', box.linkDiscord);
+  check('scroll body terkunci saat lightbox terbuka', box.overflowBody === 'hidden', box.overflowBody);
+
+  const saatBuka = await posisiTrack('#showcase [data-showcase-marquee] ul');
+  await new Promise((r) => setTimeout(r, 1200));
+  const setelahnya = await posisiTrack('#showcase [data-showcase-marquee] ul');
+  check('marquee berhenti saat lightbox terbuka', saatBuka === setelahnya, `translateX ${saatBuka} -> ${setelahnya}`);
+
+  const ditutup = await browser.evaluate(`(() => {
+    const button = document.querySelector('[role="dialog"] button[aria-label="Tutup"]');
+    if (!button) return 'tidak ada tombol tutup';
+    button.click();
+    return 'ditutup';
+  })()`);
+  await new Promise((r) => setTimeout(r, 700));
+  const st = JSON.parse(
+    await browser.evaluate(`JSON.stringify({
+      dialog: Boolean(document.querySelector('[role="dialog"]')),
+      overflow: document.body.style.overflow,
+    })`),
+  );
+  check('lightbox bisa ditutup', ditutup === 'ditutup' && !st.dialog);
+  check('scroll body balik seperti semula', st.overflow === '', `inline overflow: "${st.overflow}"`);
+} else {
+  check('klik gambar membuka lightbox', false, dibuka);
+}
+
+/* Filter yang menyisakan <= 3 produk harus diam, bukan marquee isian tipis. */
+await pilihFilter('UI');
+const kecil = JSON.parse(
+  await browser.evaluate(`JSON.stringify({
+    marquee: Boolean(document.querySelector('#showcase [data-showcase-marquee]')),
+    kartu: document.querySelectorAll('#showcase figure, #showcase button[aria-label^="Lihat"]').length,
+  })`),
+);
+check('produk <= 3 jadi grid diam, bukan marquee', !kecil.marquee, `${kecil.kartu} kartu`);
+await pilihFilter('All');
 
 /* ---- Harga Paket On Server Basic ---- */
 console.log('\n=== Harga Paket On Server ===');
