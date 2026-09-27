@@ -56,6 +56,58 @@ function sleep(ms) {
 }
 
 /**
+ * Ubah Discord mention "<@123>" menjadi username asli.
+ *
+ * Embed bot menulis `Customer: <@1368863471659122740>`, jadi tanpa request ini
+ * kartu hanya bisa menampilkan ID angka yang tidak berguna. Discord tidak punya
+ * endpoint batch, jadi tiap ID diambil satu per satu. Kegagalan individual
+ * tidak fatal: ID yang gagal resolving dilewati saja.
+ *
+ * @returns {Promise<Map<string, {username: string, globalName: string|null}>>}
+ */
+export async function resolveUsers(ids, token) {
+  const unique = [...new Set((ids ?? []).filter(Boolean))];
+  const out = new Map();
+  if (unique.length === 0) return out;
+
+  const results = await Promise.all(
+    unique.map(async (id) => {
+      try {
+        const user = await callApi(`/users/${id}`, token);
+        return [id, { username: user?.username ?? null, globalName: user?.global_name ?? null }];
+      } catch {
+        return [id, null];
+      }
+    }),
+  );
+
+  for (const [id, user] of results) {
+    if (user?.username) out.set(id, user);
+  }
+  return out;
+}
+
+/**
+ * Isi `name`/`username` dari mention yang tadi dikembalikan parser.
+ * Kalau user tidak ditemukan (bot tidak bisa melihat user itu, atau user
+ * sudah ganti username), `name` diisi label ringkas supaya kartu tetap rapi.
+ */
+export function applyIdentities(testimonials, users) {
+  return testimonials.map((item) => {
+    if (!item.userId || item.name) return item;
+    const user = users.get(item.userId);
+    if (!user) {
+      return { ...item, name: 'Pelanggan Discord' };
+    }
+    return {
+      ...item,
+      name: user.globalName || user.username,
+      username: `@${user.username}`,
+    };
+  });
+}
+
+/**
  * Ambil riwayat pesan channel lalu parse jadi daftar testimoni.
  *
  * Discord tidak bisa memfilter berdasarkan embed, jadi riwayat harus dipindai
@@ -105,8 +157,14 @@ export async function fetchTestimonials({ token, channelId, limit = 12, maxPages
 
   truncated = pages >= pagesAllowed && found.length < wanted;
 
+  const testimonials = sortTestimonials(dedupe(found)).slice(0, wanted);
+
+  // Mention "<@id>" diubah jadi username asli supaya kartu tidak menampilkan
+  // angka mentah. Kalau gagal resolving, kartu tetap dapat label cadangan.
+  const users = await resolveUsers(testimonials.map((item) => item.userId), token);
+
   return {
-    testimonials: sortTestimonials(dedupe(found)).slice(0, wanted),
+    testimonials: applyIdentities(testimonials, users),
     scanned,
     pages,
     truncated,

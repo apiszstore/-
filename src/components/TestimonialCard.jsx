@@ -30,7 +30,10 @@ export default function TestimonialCard({ item }) {
   const dateLabel = formatDateLabel(item);
 
   return (
-    <figure className="flex h-full min-w-0 flex-col rounded-md border border-line bg-surface p-5">
+    <figure
+      data-testimonial={item?.id ?? item?.name ?? 'anonim'}
+      className="flex h-full min-w-0 flex-col rounded-md border border-line bg-surface p-5"
+    >
       {/* Nama + badge */}
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <p className="min-w-0 text-[14px] leading-tight font-semibold text-ink">

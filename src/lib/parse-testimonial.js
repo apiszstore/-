@@ -95,12 +95,37 @@ function normalizeKey(raw) {
     .replace(/[^a-z0-9]/g, '');
 }
 
-/** Buang sisa format markdown Discord dan whitespace berlebih. */
+/** Buang tanda kutip pembungkus: '"teks"', "'teks'", atau smart quote. */
+function stripDecorativeGlyphs(text) {
+  return text.replace(/[\u{1d400}-\u{1d7ff}\u{1ee00}-\u{1eeff}]/gu, '');
+}
+
+function stripQuotes(text) {
+  const match = text.match(/^([\u201c\u2018"'])([\s\S]*)\1$/);
+  return match ? match[2].trim() : text;
+}
+
+/**
+ * Buang sisa format markdown Discord dan whitespace berlebih.
+ *
+ * Penting: bot testimoni menulis label sebagai "**Customer:**" - titik dua
+ * berada DI DALAM bold. Memecah baris di titik dua pertama menyisakan "**"
+ * di awal nilai, sehingga tanpa cleaned di sini nilai tampil sebagai
+ * "** Rp16.000" dan bukan "Rp16.000".
+ */
 function clean(raw) {
-  return String(raw ?? '')
-    .replace(/```/g, '')
-    .replace(/\r/g, '')
-    .replace(/[ \t]+/g, ' ')
+  const stripped = stripQuotes(
+    String(raw ?? '')
+      .replace(/```/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/__/g, '')
+      .replace(/[ \t]+/g, ' ')
+      .trim(),
+  );
+
+  return stripDecorativeGlyphs(stripped)
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/^[\s.,:;-]+/, '')
     .trim();
 }
 
@@ -204,21 +229,42 @@ function monthName(month) {
 
 /**
  * Pisahkan nama dan username.
- * Contoh spec: "Customer: @IC MATEO_DEGUERRA" -> name "IC MATEO_DEGUERRA",
- * username "@IC MATEO_DEGUERRA".
+ *
+ * Dua bentuk input yang nyata di channel:
+ *   1. Teks bebas  -> "Customer: @IC MATEO_DEGUERRA"
+ *   2. Discord mention -> "Customer: <@1368863471659122740>"
+ *
+ * Bentuk 2 tidak bisa diubah jadi nama tanpa request ke Discord, jadi
+ * `userId` dikembalikan apa adanya dan resolution-nya diserahkan ke
+ * lapisan API (lihat resolveUsers di lib/discord.js).
  *
  * Nama dengan spasi dipertahankan (tidak dipecah) supaya "@IC MATEO_DEGUERRA"
  * tidak jadi dua username. Discriminator lama "#1234" dibuang dari nama saja.
  */
 function splitIdentity(usernameField, customerField) {
   const raw = clean(usernameField || customerField);
-  if (!raw) return { name: null, username: null };
+  if (!raw) return { name: null, username: null, userId: null };
+
+  // Mention murni: "<@123>" atau "<@!123>" (nickname lama).
+  const pure = raw.match(/^<@!?(\d+)>$/);
+  if (pure) return { name: null, username: null, userId: pure[1] };
+
+  // Mention ditempel di samping teks, mis. "Budi <@123>".
+  const embedded = raw.match(/<@!?(\d+)>/);
+  if (embedded) {
+    const label = raw.replace(/<@!?\d+>/g, '').replace(/@+/g, '').trim();
+    return {
+      name: label || null,
+      username: raw.startsWith('@') ? raw : label || null,
+      userId: embedded[1],
+    };
+  }
 
   const hasAt = raw.startsWith('@');
   const username = hasAt ? raw : null;
   const name = raw.replace(/^@+/, '').replace(/#\d{4}$/, '').trim();
 
-  return { name: name || null, username: username || (hasAt ? raw : null) };
+  return { name: name || null, username: username || (hasAt ? raw : null), userId: null };
 }
 
 /**
@@ -232,13 +278,16 @@ export function parseMessage(message) {
   const fields = collectFields(embed);
   if (fields.size === 0) return null;
 
-  const { name, username } = splitIdentity(fields.get('username'), fields.get('customer'));
+  const { name, username, userId } = splitIdentity(
+    fields.get('username'),
+    fields.get('customer'),
+  );
   const comment = fields.get('comment') ?? null;
   const product = fields.get('product') ?? null;
   const price = fields.get('price') ?? null;
 
-  // Tanpa nama DAN tanpa komentar, ini bukan testimoni.
-  if (!name && !comment) return null;
+  // Tanpa nama, tanpa mention, dan tanpa komentar, ini bukan testimoni.
+  if (!name && !userId && !comment) return null;
 
   const rating = parseRating(fields.get('rating'));
   const messageIso = message?.timestamp ? String(message.timestamp).slice(0, 10) : null;
@@ -248,6 +297,7 @@ export function parseMessage(message) {
     id: String(message?.id ?? ''),
     name,
     username,
+    userId,
     rating,
     text: comment,
     product,
@@ -281,4 +331,14 @@ export function dedupe(list) {
   return out;
 }
 
-export const __test = { normalizeKey, clean, collectFields, splitIdentity, monthName, BULLET, MIDDOT };
+export const __test = {
+  normalizeKey,
+  clean,
+  stripDecorativeGlyphs,
+  stripQuotes,
+  collectFields,
+  splitIdentity,
+  monthName,
+  BULLET,
+  MIDDOT,
+};

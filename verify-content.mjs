@@ -80,16 +80,22 @@ const dirty = await browser.evaluate(`JSON.stringify({
   hasAdacheckout: document.body.innerText.includes('adacheckout'),
   copyright: document.body.innerText.match(/© \\d{4} APISZ STORE[^\\n]*/)?.[0] ?? null,
   orderButtons: [...document.querySelectorAll('button')].filter((b) => b.textContent.trim() === 'Order Now').length,
-  demoBadges: [...document.querySelectorAll('span')].filter((s) => s.textContent.trim() === 'Demo').length,
-  // Card testimoni merender bintang sebagai teks ('\u2605'), bukan SVG.
+  demoBadges: [...document.querySelectorAll('#testimonials span')].filter((s) => s.textContent.trim() === 'Demo').length,
+  verifiedBadges: [...document.querySelectorAll('#testimonials span')].filter((s) => /verified/i.test(s.textContent)).length,
+  cards: document.querySelectorAll('#testimonials figure[data-testimonial]').length,
+  // Card testimoni merender bintang sebagai teks ('★'), bukan SVG.
   // Yang diuji tetap sama: total 5 bintang per kartu.
-  stars: (document.getElementById('testimonials')?.textContent.match(/\u2605/g) ?? []).length,
+  stars: (document.getElementById('testimonials')?.textContent.match(/★/g) ?? []).length,
   dates: [...document.querySelectorAll('#testimonials time')].map((t) => t.getAttribute('datetime')),
   // Setiap kartu harus punya badge status. Entri dari Discord memakai
   // "Verified Buyer", entri contoh/"Demo" memakai badge "Demo" supaya
   // tidak pernah disalahartikan sebagai review asli.
   tags: [...document.querySelectorAll('#testimonials span')].filter((s) => /verified|demo|repeat|custom project|paket/i.test(s.textContent)).length,
-  products: [...document.querySelectorAll('#testimonials figcaption span')].map((s) => s.textContent.trim()),
+  // Baris produk: figcaption memuat satu <span> untuk produk (kiri) dan satu
+  // untuk harga (kanan). Dipisah karena keduanya harus selalu berpasangan.
+  productRows: document.querySelectorAll('#testimonials figure[data-testimonial] figcaption').length,
+  productSpans: [...document.querySelectorAll('#testimonials figure[data-testimonial] figcaption > span:first-child')].map((s) => s.textContent.trim()),
+  priceSpans: [...document.querySelectorAll('#testimonials figure[data-testimonial] figcaption > span:last-child')].map((s) => s.textContent.trim()),
 })`);
 const d = JSON.parse(dirty);
 check('tidak ada token ISI_LINK yang terlihat', d.visiblePlaceholderTokens.length === 0, d.visiblePlaceholderTokens.join(', '));
@@ -99,7 +105,14 @@ check('typo "Price dan detailnya" sudah dibenahi', !d.hasPriceTypo);
 check('typo "adacheckout" sudah dibenahi', !d.hasAdacheckout);
 check('copyright hardcode 2026', d.copyright === '© 2026 APISZ STORE. All rights reserved.', `"${d.copyright}"`);
 check('tombol Order Now ada', d.orderButtons > 0, `${d.orderButtons} tombol`);
-check('testimonial demo diberi badge', d.demoBadges === 3, `${d.demoBadges} badge`);
+
+/* Halaman bisa menampilkan data ASLI dari Discord (badge "Verified Buyer")
+   atau data CONTOH saat endpoint belum terhubung (badge "Demo"). Dua-duanya
+   sah, jadi yang diuji invariant-nya: setiap kartu wajib punya tepat satu
+   badge status supaya tidak pernah ada review tanpa label. */
+check('setiap kartu testimoni punya badge status',
+  d.cards > 0 && d.demoBadges + d.verifiedBadges === d.cards,
+  `${d.cards} kartu = ${d.verifiedBadges} verified + ${d.demoBadges} demo`);
 
 /* ---- Social: WhatsApp diganti Instagram ---- */
 console.log('\n=== Social links ===');
@@ -125,11 +138,20 @@ check('config punya social instagram', /instagram:\s*'https:\/\/instagram\.com\/
 
 /* ---- Testimonial: nama, tag, komentar, produk, bintang, tanggal ---- */
 console.log('\n=== Kelengkapan testimonial ===');
-check('bintang 1-5 dirender per kartu', d.stars === 15, `${d.stars} bintang (3 kartu x 5)`);
-check('tanggal dirender sebagai <time>', d.dates.length === 3, d.dates.join(', '));
+/* Jumlah bintang dan tanggal mengikuti jumlah kartu yang benar-benar dirender,
+   bukan angka tetap 3, supaya check ini tetap benar saat data Discord sudah
+   terhubung maupun saat masih memakai data contoh. */
+check('bintang 1-5 dirender per kartu', d.cards > 0 && d.stars === d.cards * 5, `${d.stars} bintang (${d.cards} kartu x 5)`);
+check('tanggal dirender sebagai <time>', d.dates.length === d.cards, d.dates.join(', '));
 check('format tanggal Indonesia', d.dates.every((x) => /^\d{4}-\d{2}-\d{2}$/.test(x)), d.dates.join(', '));
-check('tag customer dirender', d.tags >= 3, `${d.tags} tag`);
-check('produk/jasa dirender', d.products.length === 3, d.products.join(' | '));
+check('tag customer dirender', d.tags >= d.cards, `${d.tags} tag`);
+/* Kalau baris produk tampil, setiap baris harus punya produk DAN harga di
+   kanan - salah satu saja berarti spec "satu baris produk kiri harga kanan"
+   tidak terpenuhi. Baris produk boleh tidak ada pada data contoh. */
+check('produk/jasa + harga dirender satu baris',
+  d.productRows === 0 || (d.productSpans.length === d.productRows && d.priceSpans.length === d.productRows),
+  d.productRows === 0 ? 'tidak ada baris produk (data contoh)' : `${d.productRows} baris: ${d.productSpans.join(' | ')} @ ${d.priceSpans.join(' | ')}`);
+check('harga tidak diformat ulang', d.priceSpans.every((p) => /^Rp[\d.]+$/.test(p)), d.priceSpans.join(' | '));
 
 /* ---- Payment: logo + nama, tanpa nomor ---- */
 console.log('\n=== Payment ===');

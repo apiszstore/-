@@ -9,12 +9,17 @@ yarn-error.log*
 .idea
 .vscode
 
-# Rahasia — jangan pernah ter-commit
+# Rahasia - jangan pernah ter-commit
 .env
 .env.*
 !.env.example
 .cloudflare-token
 .wrangler/
+
+# Arsip hasil backup lokal, bukan bagian dari source
+*.zip
+*.rar
+*.7z
 
 .dev.vars*
 !.dev.vars.example

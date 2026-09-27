@@ -16,7 +16,13 @@ import SectionHeading from './SectionHeading.jsx';
  * tidak pernah disalahartikan sebagai review asli.
  */
 export default function Testimonials() {
-  const { testimonials, loading, error } = useTestimonials({ limit: 12 });
+  // pollMs bikin testimoni baru dari Discord muncul tanpa perlu refresh.
+  // Nilainya purposely sedikit lebih besar dari s-maxage=60 di API supaya
+  // request kedua biasanya dilayani cache Vercel, bukan memanggil Discord lagi.
+  const { testimonials, loading, error } = useTestimonials({
+    limit: 12,
+    pollMs: 90_000,
+  });
   const fromDiscord = testimonials.length > 0;
   const items = fromDiscord ? testimonials : fallbackTestimonials;
 
@@ -44,7 +50,10 @@ export default function Testimonials() {
       </div>
 
       <Reveal delay={120} className="mt-5 h-full">
-        <figure className="flex h-full flex-col items-center justify-center rounded-md border border-dashed border-brand/35 bg-brand/[0.04] p-5 text-center">
+        <figure
+          data-testimonial-cta
+          className="flex h-full flex-col items-center justify-center rounded-md border border-dashed border-brand/35 bg-brand/[0.04] p-5 text-center"
+        >
           <span className="grid size-11 place-items-center rounded-full border border-brand/30 bg-surface text-brand">
             <Icon name="cart" size={20} />
           </span>
