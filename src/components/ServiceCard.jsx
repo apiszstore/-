@@ -9,6 +9,12 @@ import StatusBadge from './StatusBadge.jsx';
  *
  * Border orange + glow halus hanya saat hover, supaya tidak ada
  * garis orange di setiap kartu.
+ *
+ * Kalau `service.recommended` bernilai true, kartu memakai gaya highlight
+ * yang sama dengan PacketCard di section SA-MP: border brand menyala dan
+ * ribbon label yang menempel di tepi atas. Token, ukuran, dan posisi
+ * ribbonnya sengaja disamakan supaya keduanya tidak terlihat seperti dua
+ * komponen berbeda.
  */
 export default function ServiceCard({ service, onViewDetails, compact = false }) {
   const recommended = service.recommended === true;
@@ -16,31 +22,31 @@ export default function ServiceCard({ service, onViewDetails, compact = false })
   return (
     <article
       data-recommended={recommended ? 'true' : undefined}
-      className={`group relative flex h-full flex-col rounded-md border bg-surface p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-16px_rgb(255_138_0/0.5)] sm:p-6 ${
-        /* Kartu yang direkomendasikan memakai border brand yang menyala
-           menetap, bukan cuma saat hover, supaya langsung terlihat beda
-           dari kartu lain saat halaman masih di-scroll. */
+      className={`group relative flex h-full flex-col rounded-md border p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 sm:p-6 ${
+        /* Kartu recommended memakai gaya yang sama persis dengan PacketCard
+           yang ber-highlight di section SA-MP, supaya dua penanda "pilihan
+           utama" di halaman ini terlihat sebagai satu bahasa visual. */
         recommended
-          ? 'border-brand/45 shadow-[0_10px_28px_-18px_rgb(255_138_0/0.55)] hover:border-brand/60'
-          : 'border-line hover:border-brand/45'
+          ? 'border-brand/50 bg-surface shadow-[0_10px_30px_-18px_rgb(255_138_0/0.55)] hover:border-brand/60'
+          : 'border-line bg-surface hover:border-brand/45 hover:shadow-[0_10px_28px_-16px_rgb(255_138_0/0.5)]'
       }`}
     >
+      {/* RibbonRecommended, ditempel di tepi atas kartu dengan gaya yang sama
+          seperti label "Populer" di PacketCard section SA-MP. */}
+      {recommended ? (
+        <span
+          data-recommended-badge
+          className="absolute -top-2.5 left-5 rounded-full border border-brand/40 bg-brand px-2.5 py-0.5 text-[10px] font-bold tracking-[0.12em] text-brand-ink uppercase"
+        >
+          {service.recommendedLabel ?? 'Recommended'}
+        </span>
+      ) : null}
+
       <div className="flex items-start justify-between gap-3">
         <span className="grid size-10 shrink-0 place-items-center rounded-md border border-line bg-well text-brand transition-colors group-hover:border-brand/35">
           <Icon name={service.icon} size={19} />
         </span>
-        <div className="flex min-w-0 flex-col items-end gap-1.5">
-          {recommended ? (
-            <span
-              data-recommended-badge
-              className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/12 px-2.5 py-1 text-[11px] font-bold tracking-wide text-brand uppercase"
-            >
-              <Icon name="checkCircle" size={11} strokeWidth={2.5} />
-              {service.recommendedLabel ?? 'Recommended'}
-            </span>
-          ) : null}
-          <StatusBadge status={service.status} />
-        </div>
+        <StatusBadge status={service.status} />
       </div>
 
       <h3 className="mt-4 text-[17px] font-semibold">{service.name}</h3>

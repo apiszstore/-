@@ -128,3 +128,62 @@ test('ServiceCard merender badge dari flag recommended, bukan dari id yang dikun
   // berikutnya tidak perlu menyentuh komponen.
   assert.doesNotMatch(code, /'bundle'|"bundle"/, 'komponen tidak boleh menyebut id layanan secara spesifik');
 });
+
+/* ---- Gaya badge harus sama dengan label "Populer" di section SA-MP ---- */
+
+test('ribbon RECOMMENDED punya gaya yang sama dengan label Populer di SA-MP', () => {
+  const read = (file) => readFileSync(join(process.cwd(), file), 'utf8');
+  const card = read('src/components/ServiceCard.jsx');
+  const samp = read('src/components/SampServices.jsx');
+
+  const grab = (text, attr) => {
+    const found = text.match(new RegExp(`data-${attr}[\\s\\S]{0,400}?className="([^"]+)"`));
+    return found ? found[1] : null;
+  };
+
+  const recommended = grab(card, 'recommended-badge');
+  // Teks "Populer" ada di baris berikutnya setelah penutup kutip className,
+  // jadi yang diambil adalah className-nya, bukan teksnya.
+  const populer = samp.match(/className="(absolute -top-2\.5[^"]*)"/);
+
+  assert.ok(recommended, 'badge recommended tidak ditemukan di ServiceCard');
+  assert.ok(populer, 'label Populer tidak ditemukan di SampServices');
+
+  // Ribbon harus menempel di tepi atas, sama seperti label Populer.
+  assert.match(recommended, /absolute\b/, 'badge harus diposisikan absolute');
+  assert.match(recommended, /-top-2\.5/, 'offset atas harus sama dengan label Populer');
+  assert.match(recommended, /left-5/, 'offset kiri harus sama dengan label Populer');
+
+  // Warna dan tipografi harus sama persis.
+  for (const token of [
+    'rounded-full',
+    'border-brand/40',
+    'bg-brand',
+    'text-brand-ink',
+    'text-[10px]',
+    'font-bold',
+    'tracking-[0.12em]',
+    'uppercase',
+  ]) {
+    assert.ok(
+      (populer[0] ?? '').includes(token),
+      `label Populer di SA-MP tidak punya token "${token}", cek lagi acuan gayanya`,
+    );
+    assert.ok(
+      recommended.includes(token),
+      `badge RECOMMENDED harus punya token "${token}" yang sama dengan label Populer`,
+    );
+  }
+});
+
+test('ribbon tidak menutupi isi kartu (paket p-5 minimal 20px)', () => {
+  const code = readFileSync(join(process.cwd(), 'src/components/ServiceCard.jsx'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  );
+  const badge = code.match(/data-recommended-badge[\s\S]{0,400}?className="([^"]+)"/)?.[1] ?? '';
+  // -top-2.5 = 10px di atas tepi kartu. Padding p-5 = 20px, jadi ribbon tetap
+  // berada di area padding dan tidak pernah menimpa konten.
+  const top = Number.parseFloat(badge.match(/-top-([\d.]+)/)?.[1] ?? '0');
+  assert.ok(top * 4 <= 20, `ribbon menumpuk ${top * 4}px, padding kartu hanya 20px`);
+});
