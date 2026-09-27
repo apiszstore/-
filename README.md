@@ -294,7 +294,8 @@ hanya di dashboard Vercel:
 | Install Command | `npm install` |
 
 Semuanya sudah ditulis di `vercel.json` jadi biasanya tidak perlu diubah
-manual. `api/testimonials.js` otomatis jadi endpoint `/api/testimonials`.
+manual. `api/testimonials.js` otomatis jadi endpoint `/api/testimonials`, dan
+`api/showcase.js` jadi `/api/showcase`.
 
 #### Environment variable
 
@@ -303,8 +304,10 @@ Project -> Settings -> Environment Variables:
 | Nama | Wajib | Isi |
 | --- | --- | --- |
 | `DISCORD_BOT_TOKEN` | ya | Token bot dari Discord Developer Portal |
-| `DISCORD_CHANNEL_ID` | ya | Klik kanan channel -> Copy Channel ID |
+| `DISCORD_CHANNEL_ID` | ya | Klik kanan channel -> Copy Channel ID (testimoni) |
 | `TESTIMONIAL_EMBED_TITLE` | tidak | Saring embed by judul, mis. `Rating` |
+| `DISCORD_SHOWCASE_CHANNELS` | tidak | Id channel showcase, dipisah koma |
+| `DISCORD_GUILD_ID` | tidak | Id server, untuk link pesan Discord |
 
 Salin `.env.example` jadi `.env.local` untuk pengembangan lokal.
 
@@ -337,8 +340,8 @@ Aset hilang harus tetap 404.
 
 | Perintah | Yang diuji |
 | --- | --- |
-| `npm run verify` | dev server: layout, kontras, konten (117 cek) |
-| `npm test` | parser embed Discord + endpoint (21 cek) |
+| `npm run verify` | dev server: layout, kontras, konten (122 cek) |
+| `npm test` | parser embed Discord + endpoint (115 cek) |
 | `npm run verify:dist` | build statis lewat static server (25 cek) |
 | `npm run verify:live` | situs live: header, SEO, aset, 404 (27 cek) |
 | `npm run check:url` | canonical / og:url / JSON-LD sinkron |
@@ -388,6 +391,99 @@ disalahartikan sebagai review asli.
 Detail lengkap ada di `docs/testimonials-discord.md`.
 
 
+### 11. Showcase dari Discord
+
+Section `Showcase` membaca produk langsung dari channel Discord lewat
+`/api/showcase` - **tanpa database**. Produk yang sudah diposting sebelum
+integration ini ikut tampil, dan produk baru ikut muncul tanpa input manual.
+
+```
+#product-samp    ┐
+                 ├─>  /api/showcase (Vercel)  ->  Section Showcase
+#digital-service ┘      token di env, di-cache       card yang sudah ada
+```
+
+Card, filter, layout, warna, dan animasi Showcase **tidak berubah**. Yang
+berubah hanya data yang masuk ke dalamnya, dari placeholder ke produk asli.
+Kalau endpoint belum dikonfigurasi atau Discord sedang error, section otomatis
+jatuh ke `src/data/showcase.js` supaya tidak pernah kosong.
+
+Isi channel yang dibaca:
+
+```
+✦ Textdraw Smartphone ✦
+
+FOR SALE
+Harga: Rp19.500
+
+High-quality textdraw design
+dirancang untuk memberikan visual yang clean, modern, dan elegan
+pada server GTA SAMP Anda.
+
+Preview → #textdraw
+
+[IMAGE]
+```
+
+Sumber data dibaca berurutan dari `embed.title`, `embed.fields`,
+`embed.description`, lalu `message.content` - jadi produk yang dikirim pakai
+embed maupun pesan biasa sama-sama terbaca.
+
+Yang dijamin parser:
+
+- **Harga tidak pernah dikarang.** `Exclusive Preview` dan `Tidak Untuk
+  Dijual` selalu `price: null`. Angka polos (`Terbit tahun 2026`, `No. 3`)
+  tidak pernah salah jadi harga.
+- **`Rp19.500` diteruskan apa adanya**, tidak pernah jadi `Rp 19.500`.
+- **Gambar produk memakai attachment pertama**, tidak pernah diganti gambar
+  acak. Kalau tidak ada attachment, `image` `null` dan card memakai
+  placeholder berlabel kategori yang memang sudah ada.
+- **`Preview → #textdraw` tidak dianggap status**, dan baris ajakan bertindak
+  (`Silakan ... melalui → #ticket`) tidak ikut jadi deskripsi.
+- **Percakapan biasa ditolak** - hanya pesan yang punya gambar, judul berdekor
+  (`✦ ... ✦` atau `# ✦ ... ✦`), atau embed berlabel yang dianggap produk.
+- **Markup Discord dibuang** - `<#channel>`, `<@user>`, `<a:emoji:123>`,
+  `@everyone`, dan heading markdown tidak pernah ikut ke judul atau deskripsi.
+
+Kategori mengikuti filter yang **sudah ada** (`SA-MP`, `Discord`, `Bot`,
+`Website`, `UI`) dan tidak pernah bernilai baru. Urutannya: `Kategori:` di
+embed -> kata kunci judul -> pin kategori di env -> kata kunci nama channel
+(`product-samp` -> SA-MP, `digital-service` -> Discord) -> `UI`. Hanya judul
+dan nama channel yang dibaca, bukan deskripsi - deskripsi di
+`#digital-service` hampir selalu menyebut "desain" dan "server Discord" yang
+akan menutupi kategori sesungguhnya.
+
+Pin di env dipakai sebagai **nilai default channel, bukan kunci mati** di atas
+isi produk. Satu pin untuk satu channel selalu lebih kasar daripada isi tiap
+produknya: kalau `#product-samp` dipin `SA-MP`, produk "Digital Speedometer"
+tetap jadi `UI` karena judulnya menyebut speedometer. Kalau pengin pin selalu
+menang, tulis kategori eksplisit di embed (field `Kategori:`) - baris itu
+selalu menang atas semua tebakan.
+
+```
+DISCORD_SHOWCASE_CHANNELS=1553622067746840709:SA-MP,1553622274001735782:Discord
+```
+
+Formatnya `<idChannel>:<Kategori>`, dan kategorinya **harus salah satu dari
+lima filter yang sudah ada** - `SA-MP`, `Discord`, `Bot`, `Website`, `UI`.
+Huruf besar-kecil tidak berpengaruh, jadi `samp` dan `sa-mp` sama-sama
+dibaca `SA-MP`. Nilai yang tidak dikenal (mis. `digital`) tidak menggagalkan
+apa pun - kategorinya dikosongkan lalu ditebak otomatis - tapi muncul di field
+`unknown` pada respons endpoint supaya kelihatan, bukan hilang diam-diam.
+
+Discord tidak bisa menyaring pesan, jadi tiap channel dipindai dari pesan
+terbaru ke lama memakai `before` - inilah yang membuat produk lama ikut
+terbaca. Default `maxPages=2` (200 pesan per channel); naikkan dengan
+`?limit=50&maxPages=10`. `truncated: true` artinya histori belum habis
+dibaca, `false` artinya channel sudah tuntas.
+
+"otomatis" berarti **sekitar 1-2 menit**: endpoint mengirim
+`Cache-Control: s-maxage=60` dan section memanggil ulang tiap 90 detik. Paksa
+ambil data baru dengan `?refresh=1`.
+
+Detail lengkap ada di `docs/showcase-discord.md`.
+
+
 ## Checklist sebelum publish
 
 - [ ] `discord` di `src/config/site.js` diganti invite asli
@@ -397,7 +493,6 @@ Detail lengkap ada di `docs/testimonials-discord.md`.
 - [ ] Favicon `public/brand/favicon.png` sudah diunggah
 - [ ] `src/data/products.js` diisi produk asli (hapus array kosong)
 - [ ] Testimonial demo diganti review asli (lalu hapus entri demo)
-- [ ] Screenshot showcase ditempel ke `public/`
 - [ ] Harga dan `status` setiap layanan sudah dikonfirmasi
 - [ ] `npm run build` dan `npm run verify` lolos
 - [ ] `npm run verify:dist` lolos
@@ -405,6 +500,8 @@ Detail lengkap ada di `docs/testimonials-discord.md`.
 - [ ] `npm run check:url` menunjuk domain final
 - [ ] `DISCORD_BOT_TOKEN` + `DISCORD_CHANNEL_ID` sudah di-set di Vercel
 - [ ] `/api/testimonials` balas 200 di URL production
+- [ ] `DISCORD_SHOWCASE_CHANNELS` sudah di-set di Vercel
+- [ ] `/api/showcase` balas 200 di URL production
 - [ ] Token Cloudflare yang pernah dipublish sudah di-revoke
 - [ ] Deployment Cloudflare lama sudah dihapus dari dashboard
 - [ ] Tidak ada credential di repo (repo ini publik)

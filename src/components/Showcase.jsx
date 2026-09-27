@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { showcaseFilters, showcaseItems } from '../data/showcase.js';
 import Icon from './Icon.jsx';
 import Reveal from './Reveal.jsx';
@@ -6,18 +6,82 @@ import Section from './Section.jsx';
 import SectionHeading from './SectionHeading.jsx';
 
 /**
+ * Ambil produk showcase dari channel Discord lewat `/api/showcase`.
+ *
+ * Pola ini sama dengan `useTestimonials` di TestimonialCard.jsx: token hanya
+ * dibaca di server, browser cuma menerima JSON yang sudah diparse.
+ * `connected` membedakan "endpoint sehat tapi channel belum ada produk" dari
+ * "endpoint gagal".
+ */
+export function useShowcase({ limit = 24, pollMs = 0, endpoint = '/api/showcase' } = {}) {
+  const [state, setState] = useState({ items: [], loading: true, error: null, connected: false });
+  const timer = useRef(null);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        const response = await fetch(`${endpoint}?limit=${limit}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!alive) return;
+        setState({ items: data.items ?? [], loading: false, error: null, connected: true });
+      } catch (error) {
+        if (!alive) return;
+        setState((prev) => ({ ...prev, loading: false, error, connected: false }));
+      }
+    }
+
+    load();
+
+    if (pollMs > 0) {
+      timer.current = setInterval(load, pollMs);
+      return () => { alive = false; clearInterval(timer.current); };
+    }
+
+    return () => { alive = false; };
+  }, [limit, pollMs, endpoint]);
+
+  return state;
+}
+
+/**
  * Galeri showcase.
- * Semua item memakai `image: null` sampai ada file asli, jadi yang
- * tampil selalu placeholder berlabel — tidak ada gambar stok yang
- * tidak berhubungan dengan APISZ STORE.
+ *
+ * Sumber datanya channel Discord (#product-samp dan #digital-service) lewat
+ * `/api/showcase`, jadi produk yang sudah diposting sebelumnya ikut tampil
+ * tanpa input manual, dan produk baru ikut muncul begitu dikirim ke Discord.
+ *
+ * `data/showcase.js` tetap dipakai sebagai fallback kalau endpoint belum
+ * dikonfigurasi atau Discord sedang tidak bisa dihubungi, supaya section
+ * tidak pernah kosong dan tidak menampilkan gambar yang tidak relevan.
  */
 export default function Showcase() {
   const [filter, setFilter] = useState('All');
 
+  // pollMs bikin produk baru dari Discord muncul tanpa perlu refresh halaman.
+  // Nilainya sedikit lebih besar dari s-maxage=60 di API supaya request kedua
+  // biasanya dilayani cache Vercel, bukan memanggil Discord lagi.
+  const { items, loading, error } = useShowcase({ limit: 24, pollMs: 90_000 });
+
+  const fromDiscord = items.length > 0;
+  // Endpoint sehat tapi channel belum berisi produk = semua produk dihapus dari
+  // Discord. Kasus itu tetap memakai placeholder, bukan pesan error.
+  const source = fromDiscord ? items : showcaseItems;
+
   const visible = useMemo(
-    () => (filter === 'All' ? showcaseItems : showcaseItems.filter((item) => item.category === filter)),
-    [filter],
+    () => (filter === 'All' ? source : source.filter((item) => item.category === filter)),
+    [filter, source],
   );
+
+  const notice = fromDiscord
+    ? 'Showcase ini diambil langsung dari channel showcase Discord kami.'
+    : loading
+      ? 'Screenshot asli akan ditambahkan setelah tersedia.'
+      : error
+        ? 'Showcase dari Discord belum bisa dimuat. Menampilkan contoh tampilan.'
+        : 'Belum ada produk yang dipublikasikan di channel showcase Discord kami.';
 
   return (
     <Section id="showcase" tone="raised">
@@ -88,7 +152,7 @@ export default function Showcase() {
 
       <p className="mt-5 flex items-center gap-1.5 text-[12.5px] text-faint">
         <Icon name="info" size={14} />
-        Screenshot asli akan ditambahkan setelah tersedia.
+        {notice}
       </p>
     </Section>
   );

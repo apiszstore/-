@@ -1,17 +1,24 @@
 /**
- * Showcase / galeri project.
+ * Fallback showcase / galeri project.
  *
- * CARA MENGGANTI GAMBAR:
+ * Sumber data utama Showcase sebenarnya adalah channel Discord lewat
+ * `/api/showcase` (lihat `docs/showcase-discord.md`). Daftar di file ini
+ * hanya dipakai kalau endpoint-nya belum dikonfigurasi atau Discord sedang
+ * tidak bisa dihubungi, supaya section tidak pernah kosong dan tidak pernah
+ * menampilkan gambar yang tidak relevan.
+ *
+ * CARA MENGGANTI GAMBAR (untuk fallback):
  *  Taruh file di /public/showcase/, lalu ubah `image` jadi
  *  '/showcase/nama-file.png'.
  *
- *  Kalau `image` null, kartu memakai placeholder berlabel kategori
- *  supaya tidak menampilkan gambar yang tidak relevan.
+ * Kalau `image` null, kartu memakai placeholder berlabel kategori
+ * supaya tidak menampilkan gambar yang tidak relevan.
  */
 
 export const showcaseCategories = ['All', 'SA-MP', 'Discord', 'Bot', 'Website', 'UI'];
 
 export const showcaseFilters = ['All', 'SA-MP', 'Discord', 'Bot', 'Website', 'UI'];
+
 
 export const showcaseItems = [
   {
