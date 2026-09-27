@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "APISZ STORE — Digital Service & SA-MP Service",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
