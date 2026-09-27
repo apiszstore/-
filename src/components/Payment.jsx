@@ -30,9 +30,18 @@ export default function Payment() {
         align="center"
       />
 
-      <div className="mx-auto mt-10 grid max-w-2xl gap-4 sm:grid-cols-3">
+      {/*
+        Grid auto-fit, bukan sm:grid-cols-3 yang dikunci. Jumlah kolom ikut
+        menyesuaikan dengan banyak metode, jadi menambah metode ke-4 atau ke-5
+        tidak pernah membuat baris meluber keluar container.
+
+        minmax(8.5rem, 1fr) yang menjaga tiap kolom minimal 136px. Dengan
+        begitu kartu tidak pernah ikut:sempit, dan di layar 320px grid
+        turun ke satu kolom tanpa muncul scroll horizontal.
+      */}
+      <div className="mx-auto mt-10 grid max-w-2xl gap-4 [grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr))]">
         {paymentMethods.map((method, index) => (
-          <Reveal key={method.id} delay={index * 70}>
+          <Reveal key={method.id} delay={index * 70} className="min-w-0">
             <PaymentCard {...method} />
           </Reveal>
         ))}
@@ -59,10 +68,14 @@ function PaymentCard({ id, name, logo, fallback }) {
   return (
     <div
       data-payment={id}
-      className="flex h-full flex-col items-center justify-center gap-3 rounded-md border border-line bg-surface px-4 py-6 text-center transition-colors hover:border-brand/40"
+      className="flex h-full min-w-0 flex-col items-center justify-center gap-3 overflow-hidden rounded-md border border-line bg-surface px-3 py-6 text-center transition-colors hover:border-brand/40"
     >
       <PaymentLogo src={logo} alt={`Logo ${name}`} fallback={fallback ?? name} />
-      <p className="font-display text-[15px] font-bold tracking-tight text-ink">{name}</p>
+      {/* break-words + hyphens menjaga nama panjang seperti "Bank Transfer (BCA)"
+          atau "QRIS Semua E-Wallet" tetap di dalam kartu, bukan meluber keluar. */}
+      <p className="font-display text-[15px] font-bold tracking-tight break-words hyphens-auto text-ink">
+        {name}
+      </p>
     </div>
   );
 }
