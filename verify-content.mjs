@@ -81,9 +81,14 @@ const dirty = await browser.evaluate(`JSON.stringify({
   copyright: document.body.innerText.match(/© \\d{4} APISZ STORE[^\\n]*/)?.[0] ?? null,
   orderButtons: [...document.querySelectorAll('button')].filter((b) => b.textContent.trim() === 'Order Now').length,
   demoBadges: [...document.querySelectorAll('span')].filter((s) => s.textContent.trim() === 'Demo').length,
-  stars: document.querySelectorAll('#testimonials svg[viewBox="0 0 20 20"]').length,
+  // Card testimoni merender bintang sebagai teks ('\u2605'), bukan SVG.
+  // Yang diuji tetap sama: total 5 bintang per kartu.
+  stars: (document.getElementById('testimonials')?.textContent.match(/\u2605/g) ?? []).length,
   dates: [...document.querySelectorAll('#testimonials time')].map((t) => t.getAttribute('datetime')),
-  tags: [...document.querySelectorAll('#testimonials span')].filter((s) => /verified|repeat|custom project|paket/i.test(s.textContent)).length,
+  // Setiap kartu harus punya badge status. Entri dari Discord memakai
+  // "Verified Buyer", entri contoh/"Demo" memakai badge "Demo" supaya
+  // tidak pernah disalahartikan sebagai review asli.
+  tags: [...document.querySelectorAll('#testimonials span')].filter((s) => /verified|demo|repeat|custom project|paket/i.test(s.textContent)).length,
   products: [...document.querySelectorAll('#testimonials figcaption span')].map((s) => s.textContent.trim()),
 })`);
 const d = JSON.parse(dirty);

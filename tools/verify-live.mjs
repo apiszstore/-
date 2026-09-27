@@ -2,13 +2,14 @@
  * Verifikasi situs yang sudah LIVE di internet (bukan dev server).
  *
  * Yang dicek: halaman benar-benar ter-render dari CDN, aset 200, URL
- * canonical benar, dan header _headers benar-benar diterapkan Cloudflare.
+ * canonical benar, dan header keamanan dari vercel.json benar-benar diterapkan.
  *
  * Jalankan: node tools/verify-live.mjs
  */
 import { openBrowser } from './cdp.mjs';
+import { readOrigin } from './site-url.mjs';
 
-const ORIGIN = process.env.LIVE_URL ?? 'https://apiszstore.zackahd020410.workers.dev';
+const ORIGIN = process.env.LIVE_URL ?? readOrigin();
 
 let pass = 0;
 let fail = 0;
@@ -53,11 +54,12 @@ for (const p of ['/og-image.png', '/brand/logo.png', '/brand/favicon.png']) {
   const r = await fetch(new URL(p, ORIGIN));
   check(`200 ${p}`, r.ok, `HTTP ${r.status}`);
 }
-/* _headers itu file konfigurasi yang dipakai Cloudflare saat deploy.
-   Cloudflare TIDAK menyajikannya sebagai aset publik, jadi 404 di sini
-   adalah perilaku yang benar - dan membuktikan rule-nya tidak bocor. */
-const headersFile = await fetch(new URL('/_headers', ORIGIN));
-check('_headers tidak terekspos publik (404 = benar)', headersFile.status === 404, `HTTP ${headersFile.status}`);
+/* File konfigurasi deploy tidak boleh bocor jadi aset publik. 404 di sini
+   adalah perilaku yang benar, dan membuktikan rule-nya tidak ikut ter-upload. */
+for (const p of ['/_headers', '/vercel.json']) {
+  const r = await fetch(new URL(p, ORIGIN));
+  check(`${p} tidak terekspos publik (404 = benar)`, r.status === 404, `HTTP ${r.status}`);
+}
 
 
 console.log('\n=== 404 tetap 404 (fallback SPA tidak aktif) ===');

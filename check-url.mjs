@@ -3,7 +3,7 @@
  *
  * Alasannya: URL situs ada di 3 tempat di index.html. Kalau hanya salah
  * satu diganti, search engine dan WhatsApp/FB akan memakai URL berbeda
- * dari yangVisitor lihat — gejalanya share preview dan SEO tank.
+ * dari yang Pengunjung lihat — gejalanya share preview dan SEO tank.
  *
  * Jalankan: node check-url.mjs   (atau npm run check:url)
  */
@@ -49,10 +49,6 @@ const unique = new Set(Object.values(hosts));
 
 if (unique.size === 1 && !unique.has(null)) {
   console.log(`OK    canonical / og:url / JSON-LD sinkron -> ${[...unique][0]}`);
-  if ([...unique][0].endsWith('.pages.dev')) {
-    console.log('CATATAN masih URL sementara Cloudflare Pages. Ganti ke domain asli');
-    console.log('        di index.html (canonical, og:url, JSON-LD) sebelum trafik naik.');
-  }
 } else {
   console.error('GAGAL  URL tidak sinkron:');
   for (const [k, v] of Object.entries(hosts)) console.error(`        ${k.padEnd(10)} ${v}`);

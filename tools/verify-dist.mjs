@@ -1,8 +1,8 @@
 /**
  * Uji build produksi (folder dist/) seolah-olah sudah di-host di
- * Cloudflare Pages: static server, bukan vite dev.
+ * server statis (mis. `npx serve dist`), bukan vite dev.
  *
- * Tujuannya menangkap masalah yang HANYA muncul di build static —
+ * Tujuannya menangkap masalah yang HANYA muncul di build static:
  * asset salah path, file hilang, 404, atau salah referrer.
  *
  * Jalankan: node tools/verify-dist.mjs

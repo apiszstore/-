@@ -21,13 +21,15 @@
     <meta name="author" content="APISZ STORE" />
     <meta name="robots" content="index, follow" />
     <!-- Canonical / og:url / JSON-LD url
-         FIXME: ini masih URL sementara (Cloudflare Workers, *.workers.dev). Ganti ke domain
-         asli di 3 tempat ini sekaligus kalau domain sudah siap:
+         Ketiganya harus punya host yang sama. Kalau URL situs berubah, ganti
+         3 baris di bawah ini sekaligus:
            1. <link rel="canonical">
            2. <meta property="og:url">
            3. "url" di JSON-LD
+         tools/site-url.mjs membaca canonical di sini sebagai sumber URL
+         tunggal untuk semua tool, jadi tidak ada lagi yang perlu hardcode.
          Jalankan: npm run check:url  untuk memastikan ketiganya sinkron. -->
-    <link rel="canonical" href="https://apiszstore.zackahd020410.workers.dev/" />
+    <link rel="canonical" href="https://apiszstore.vercel.app/" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -40,7 +42,7 @@
     <meta property="og:image" content="/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:url" content="https://apiszstore.zackahd020410.workers.dev/" />
+    <meta property="og:url" content="https://apiszstore.vercel.app/" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -65,7 +67,7 @@
         "alternateName": "APISZ Digital Service",
         "description": "Digital service store untuk kebutuhan Discord, development, website, dan SA-MP.",
         "slogan": "Digital Service & SA-MP Solutions",
-        "url": "https://apiszstore.zackahd020410.workers.dev/"
+        "url": "https://apiszstore.vercel.app/"
       }
     </script>
   </head>

@@ -273,70 +273,120 @@ Navigasi bisa juga dibuka langsung lewat hash, misal
 
 ---
 
-### 9. Deploy ke Cloudflare
+### 9. Deploy ke Vercel
 
-Situs ini **live** di:
-
-**https://apiszstore.zackahd020410.workers.dev**
+Situs ini berjalan di **Vercel**. Repo ini di-push ke GitHub, lalu Vercel
+ otomatis build tiap kali ada push ke `main`.
 
 ```bash
-npm run deploy            # build + wrangler deploy (production)
-npm run deploy:preview    # -> apiszstore-preview.<akun>.workers.dev
+npm run build      # build lokal, sama dengan yang Vercel jalankan
+npm run preview    # serve hasil build untuk cek sebelum push
 ```
 
-`npm run deploy` dibungkus `tools/deploy.mjs` supaya token dibaca dari
-file lalu divalidasi bentuknya sebelum dipakai. Untuk mencoba-coba
-tanpa menyentuh production, pakai `deploy:preview`.
+Tidak ada CLI deploy yang harus dijalankan manual. Yang perlu disiapkan
+hanya di dashboard Vercel:
 
-**Autentikasi.** Token dibaca dari `CLOUDFLARE_API_TOKEN`, atau dari file
-`.cloudflare-token` (sudah masuk `.gitignore`) yang isinya **hanya**
-tokennya. Jangan pernah menaruh token di source code atau commit.
+| Project setting | Nilai |
+| --- | --- |
+| Framework Preset | Vite |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+| Install Command | `npm install` |
 
-Token dibuat di Dashboard Cloudflare -> My Profile -> API Tokens ->
-Create Token -> template **Edit Cloudflare Workers** (wajib ada
-permission **Cloudflare Pages: Edit**).
+Semuanya sudah ditulis di `vercel.json` jadi biasanya tidak perlu diubah
+manual. `api/testimonials.js` otomatis jadi endpoint `/api/testimonials`.
 
-> `wrangler` otomatis memigrasikan proyek ke Cloudflare Workers: menambah
-> `@cloudflare/vite-plugin` + `wrangler` sebagai devDependency, membuat
-> `wrangler.jsonc`, dan memindahkan "Pages" ke bawah "Workers". Akibatnya
-> URL-nya `*.workers.dev`, bukan `*.pages.dev`.
+#### Environment variable
 
-**Penting — `assets.not_found_handling` di `wrangler.jsonc` sengaja
-`"none"`.** Website ini tidak punya router, jadi tidak butuh fallback ke
-`index.html`. Kalau dinyalakan `single-page-application`, setiap request
-yang tidak ada dijawab `index.html` dengan status **200**, bukan 404 —
-browser lalu mencoba merender HTML sebagai gambar, dan aset yang hilang
-tidak pernah terlihat di monitoring. Aset hilang harus tetap 404.
+Project -> Settings -> Environment Variables:
 
-**Domain.** `apiszstore.com` belum diarahkan ke mana pun dan **tidak
-dipakai** di project ini. Custom domain ditambahkan lewat dashboard
-Workers & Pages -> project `apiszstore` -> Domains & Routes, setelah
-nameserver domain diarahkan ke Cloudflare.
+| Nama | Wajib | Isi |
+| --- | --- | --- |
+| `DISCORD_BOT_TOKEN` | ya | Token bot dari Discord Developer Portal |
+| `DISCORD_CHANNEL_ID` | ya | Klik kanan channel -> Copy Channel ID |
+| `TESTIMONIAL_EMBED_TITLE` | tidak | Saring embed by judul, mis. `Rating` |
+
+Salin `.env.example` jadi `.env.local` untuk pengembangan lokal.
+
+> **Token tidak boleh masuk GitHub.** Repo ini publik, jadi siapa pun bisa
+> membaca isinya. Credential hanya disimpan di Environment Variables Vercel.
+> Kalau token pernah ikut ter-push atau ter-posts, revoke dan ganti.
+
+#### Domain
+
+Project -> Settings -> Domains -> Add. Domain tidak harus صعوبة di tempat
+yang sama dengan repo; Vercel memberi sertifikat HTTPS otomatis.
 
 Setelah dapat domain asli, ganti URL di tiga tempat di `index.html`
 (canonical, `og:url`, `url` di JSON-LD), lalu jalankan `npm run check:url`.
-Skrip itu gagal kalau ketiganya tidak menunjuk host yang sama — kalau
+Skrip itu gagal kalau ketiganya tidak menunjuk host yang sama - kalau
 selisih, search engine dan WhatsApp/FB memakai URL berbeda dari yang
 pengunjung lihat, dan share preview rusak.
 
-**Verifikasi berlapis:**
+`tools/site-url.mjs` membaca canonical di `index.html` sebagai sumber URL
+tunggal, jadi tidak ada lagi tool yang hardcode URL sendiri.
+
+**Penting - jangan pakai rewrite wildcard di `vercel.json`.** Website ini
+tidak punya router, jadi tidak butuh fallback ke `index.html`. Kalau
+ditambahkan, setiap request yang tidak ada dijawab `index.html` dengan
+status **200**, bukan 404 - browser lalu mencoba merender HTML sebagai
+gambar, dan aset yang hilang tidak pernah terlihat di monitoring.
+Aset hilang harus tetap 404.
+
+#### Verifikasi berlapis
 
 | Perintah | Yang diuji |
 | --- | --- |
 | `npm run verify` | dev server: layout, kontras, konten (117 cek) |
+| `npm test` | parser embed Discord + endpoint (21 cek) |
 | `npm run verify:dist` | build statis lewat static server (25 cek) |
 | `npm run verify:live` | situs live: header, SEO, aset, 404 (27 cek) |
 | `npm run check:url` | canonical / og:url / JSON-LD sinkron |
 
-**Caching & header** diatur di `public/_headers`. Aset `/assets/*` punya
-hash di nama file jadi di-cache `immutable` selama setahun; `index.html`
-selalu `no-cache` supaya deploy baru langsung terlihat. File `_headers`
-sendiri tidak serves publik (Cloudflare memakainya saat deploy).
+`npm run verify` dan `npm run verify:dist` butuh server yang jalan
+terlebih dulu (`npm run dev`, atau `npx serve dist -l 8090`).
+
+**Caching & header** diatur di `vercel.json`. Aset `/assets/*` punya hash di
+nama file jadi di-cache `immutable` selama setahun; `index.html` selalu
+`no-cache` supaya deploy baru langsung terlihat. `vercel.json` sendiri
+tidak serves publik, jadi `/vercel.json` harus balas 404.
 
 **Preview link media sosial.** `og-image` memakai PNG 1200x630
-(`npm run og:png` untuk regenerate dari `og-image.svg`) — WhatsApp,
+(`npm run og:png` untuk regenerate dari `og-image.svg`) - WhatsApp,
 Facebook, dan X **tidak** merender SVG, jadi preview-nya akan kosong
 kalau og:image berupa `.svg`.
+
+### 10. Testimoni dari Discord
+
+Section `Testimonials` membaca data langsung dari channel Discord lewat
+`/api/testimonials` - **tanpa database**. Testimoni lama dan testimoni baru
+ikut terbaca, jadi tidak ada input manual per testimoni.
+
+```
+Discord channel  ->  /api/testimonials (Vercel)  ->  TestimonialCard
+   embed             token di env, di-cache        format website
+```
+
+Bot Discord butuh izin **View Channel**, **Read Message History**, dan
+**Message Content Intent**. Tanpa itu API membalas `403`.
+
+Embed dibaca dari `embed.fields` maupun `embed.description`, dan mendukung
+label `Customer`/`Nama`/`Pembeli`, `Rate`/`Bintang`, `Product/Jasa`/`Jasa`/
+`Layanan`, `Harga`, `Komentar`, `Tanggal`. `Invoice` sengaja tidak pernah
+dikembalikan ke card. `Harga` diteruskan apa adanya, jadi `Rp19.500`
+tidak pernah jadi `Rp 19.500`.
+
+Vercel serverless tidak punya koneksi persisten ke Discord, jadi "otomatis"
+berarti **sekitar 60 detik**, bukan real-time. Endpoint mengirim
+`Cache-Control: s-maxage=60`, jadi CDN Vercel yang menyegarkan. Paksa
+ambil data baru dengan `?refresh=1`.
+
+Kalau endpoint belum dikonfigurasi, section otomatis jatuh ke
+`src/data/testimonials.js` dan memakai badge "Demo" supaya tidak pernah
+disalahartikan sebagai review asli.
+
+Detail lengkap ada di `docs/testimonials-discord.md`.
+
 
 ## Checklist sebelum publish
 
@@ -353,5 +403,8 @@ kalau og:image berupa `.svg`.
 - [ ] `npm run verify:dist` lolos
 - [ ] `npm run verify:live` lolos
 - [ ] `npm run check:url` menunjuk domain final
-- [ ] API token Cloudflare sudah di-revoke dan diganti (kalau sempat
-      dipublish lewat chat atau screenshot)
+- [ ] `DISCORD_BOT_TOKEN` + `DISCORD_CHANNEL_ID` sudah di-set di Vercel
+- [ ] `/api/testimonials` balas 200 di URL production
+- [ ] Token Cloudflare yang pernah dipublish sudah di-revoke
+- [ ] Deployment Cloudflare lama sudah dihapus dari dashboard
+- [ ] Tidak ada credential di repo (repo ini publik)
