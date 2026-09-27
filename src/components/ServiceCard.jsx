@@ -11,13 +11,36 @@ import StatusBadge from './StatusBadge.jsx';
  * garis orange di setiap kartu.
  */
 export default function ServiceCard({ service, onViewDetails, compact = false }) {
+  const recommended = service.recommended === true;
+
   return (
-    <article className="group flex h-full flex-col rounded-md border border-line bg-surface p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand/45 hover:shadow-[0_10px_28px_-16px_rgb(255_138_0/0.5)] sm:p-6">
+    <article
+      data-recommended={recommended ? 'true' : undefined}
+      className={`group relative flex h-full flex-col rounded-md border bg-surface p-5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-16px_rgb(255_138_0/0.5)] sm:p-6 ${
+        /* Kartu yang direkomendasikan memakai border brand yang menyala
+           menetap, bukan cuma saat hover, supaya langsung terlihat beda
+           dari kartu lain saat halaman masih di-scroll. */
+        recommended
+          ? 'border-brand/45 shadow-[0_10px_28px_-18px_rgb(255_138_0/0.55)] hover:border-brand/60'
+          : 'border-line hover:border-brand/45'
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <span className="grid size-10 shrink-0 place-items-center rounded-md border border-line bg-well text-brand transition-colors group-hover:border-brand/35">
           <Icon name={service.icon} size={19} />
         </span>
-        <StatusBadge status={service.status} />
+        <div className="flex min-w-0 flex-col items-end gap-1.5">
+          {recommended ? (
+            <span
+              data-recommended-badge
+              className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/12 px-2.5 py-1 text-[11px] font-bold tracking-wide text-brand uppercase"
+            >
+              <Icon name="checkCircle" size={11} strokeWidth={2.5} />
+              {service.recommendedLabel ?? 'Recommended'}
+            </span>
+          ) : null}
+          <StatusBadge status={service.status} />
+        </div>
       </div>
 
       <h3 className="mt-4 text-[17px] font-semibold">{service.name}</h3>
