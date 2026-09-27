@@ -41,8 +41,12 @@ export default async function handler(req, res) {
     return send(res, 405, { error: 'Method not allowed' }, { noStore: true });
   }
 
-  const token = process.env.DISCORD_BOT_TOKEN;
-  const channelId = process.env.DISCORD_CHANNEL_ID;
+  // Vercel/Discord Developer Portal kadang menyalin nilai dengan tanda kutip
+  // atau spasi tersembunyi. Discord membalas "400 Invalid Form Body" untuk
+  // channel id NON-numerik, dan 404 kalau snowflake-nya salah - keduanya
+  // membingungkan. Bersihkan dulu, lalu tolak yang jelas bukan snowflake.
+  const token = (process.env.DISCORD_BOT_TOKEN ?? '').trim();
+  const channelId = (process.env.DISCORD_CHANNEL_ID ?? '').trim();
 
   if (!token || !channelId) {
     // Nama env sengaja disebut, nilainya tidak.
@@ -52,6 +56,19 @@ export default async function handler(req, res) {
       {
         error: 'Server belum dikonfigurasi',
         detail: 'DISCORD_BOT_TOKEN dan/atau DISCORD_CHANNEL_ID belum di-set di environment Vercel.',
+      },
+      { noStore: true },
+    );
+  }
+
+  if (!/^\d{17,20}$/.test(channelId)) {
+    return send(
+      res,
+      500,
+      {
+        error: 'DISCORD_CHANNEL_ID bukan Channel ID yang valid',
+        detail:
+          'Harus 17-20 digit angka snowflake Discord, tanpa tanda kutip dan tanpa nama channel. Salin ulang lewat Developer Mode: klik kanan channel > Copy Channel ID.',
       },
       { noStore: true },
     );

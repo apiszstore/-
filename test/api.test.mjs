@@ -136,13 +136,55 @@ test('pesan duplikat di halaman berbeda tidak tampil dua kali', async () => {
   assert.equal(result.testimonials.length, 1);
 });
 
+test('handler 500 dengan pesan jelas kalau channel id bukan snowflake', async () => {
+  // Nilai yang dibungkus tanda kutip atau berisi nama channel membuat Discord
+  // membalas 400 "Invalid Form Body" tanpa penjelasan. Handler harus menolak
+  // sendiri sebelum memanggil Discord.
+  const asli = globalThis.fetch;
+  let dipanggil = false;
+  globalThis.fetch = async () => {
+    dipanggil = true;
+    return { status: 200, ok: true, json: async () => [] };
+  };
+
+  for (const buruk of ['"1545657570549829662"', 'rating-store', '999', '15456 5705 49829662']) {
+    process.env.DISCORD_BOT_TOKEN = TOKEN;
+    process.env.DISCORD_CHANNEL_ID = buruk;
+
+    const res = makeRes();
+    await handler({ method: 'GET', query: {} }, res);
+
+    assert.equal(res.statusCode, 500, `harus ditolak: ${buruk}`);
+    assert.match(res.body.error, /Channel ID/);
+    assert.equal(JSON.stringify(res.body).includes(TOKEN), false);
+  }
+
+  assert.equal(dipanggil, false, 'Discord tidak boleh dipanggil untuk channel id tak valid');
+  globalThis.fetch = asli;
+});
+
+test('handler: spasi/newline di env tetap diterima karena sudah di-trim', async () => {
+  const asli = globalThis.fetch;
+  globalThis.fetch = mockDiscord([
+    [{ id: '1001', timestamp: '2026-09-13T10:00:00Z', embeds: [embed('IC MATEO_DEGUERRA', '13 September 2026')] }],
+  ]);
+  process.env.DISCORD_BOT_TOKEN = `  ${TOKEN}\n`;
+  process.env.DISCORD_CHANNEL_ID = ' 1545657570549829662 ';
+
+  const res = makeRes();
+  await handler({ method: 'GET', query: {} }, res);
+  globalThis.fetch = asli;
+
+  assert.equal(res.statusCode, 200);
+});
+
 test('handler 200: payload bersih, invoice tidak ada, token tidak bocor', async () => {
   const original = globalThis.fetch;
   globalThis.fetch = mockDiscord([
     [{ id: '1001', timestamp: '2026-09-13T10:00:00Z', embeds: [embed('IC MATEO_DEGUERRA', '13 September 2026')] }],
   ]);
   process.env.DISCORD_BOT_TOKEN = TOKEN;
-  process.env.DISCORD_CHANNEL_ID = '999';
+  process.env.DISCORD_CHANNEL_ID = '1545657570549829662';
 
   const res = makeRes();
   await handler({ method: 'GET', query: { limit: '12' } }, res);
