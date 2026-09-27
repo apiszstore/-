@@ -21,6 +21,11 @@ const check = (label, condition, detail = '') => {
   }
 };
 
+/** Ambil uint32 big-endian dari buffer. Header PNG menyimpan width/height di offset 16 dan 20. */
+function readUInt32BE(buf, offset) {
+  return buf.readUInt32BE(offset);
+}
+
 const browser = await openBrowser({ port: PORT, target: TARGET, profile: 'verify-content' });
 
 /* ---- Aset ---- */
@@ -41,10 +46,22 @@ check('JSON-LD ada', a.jsonLd);
 check('title terisi', a.title.length > 10, `"${a.title}"`);
 check('meta description terisi', a.desc.length > 50);
 
-for (const asset of ['/favicon.svg', '/og-image.svg']) {
+for (const asset of ['/favicon.svg', '/og-image.svg', '/og-image.png', '/apple-touch-icon.png']) {
   const status = await fetch(TARGET.replace(/\/$/, '') + asset).then((r) => r.status);
   check(`${asset} dapat diakses`, status === 200, `HTTP ${status}`);
 }
+
+/* apple-touch-icon harus PNG 180x180. iOS mengabaikan SVG untuk link ini,
+   jadi kalau asset-nya diubah ke .svg, check ini yang akan menangkap. */
+const touchIcon = await fetch(TARGET.replace(/\/$/, '') + '/apple-touch-icon.png');
+const touchBuf = Buffer.from(await touchIcon.arrayBuffer());
+const touchSize = readUInt32BE(touchBuf, 16);
+const touchHeight = readUInt32BE(touchBuf, 20);
+check('apple-touch-icon.png 180x180', touchSize === 180 && touchHeight === 180, `${touchSize}x${touchHeight}`);
+check(
+  'index.html menunjuk apple-touch-icon ke PNG',
+  readFileSync(new URL('./index.html', import.meta.url), 'utf8').includes('rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"'),
+);
 
 /* ---- Konten tiap section ---- */
 console.log('\n=== Konten section ===');

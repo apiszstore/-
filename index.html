@@ -53,10 +53,12 @@
     />
     <meta name="twitter:image" content="/og-image.png" />
 
-    <!-- Favicon: nilai bawaan. src/lib/brand.js akan menggantinya dengan
-         src/config/site.js -> brand.favicon kalau file-nya tersedia. -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+      <!-- Favicon: nilai bawaan. src/lib/brand.js akan menggantinya dengan
+           src/config/site.js -> brand.favicon kalau file-nya tersedia. -->
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      <!-- apple-touch-icon HARUS PNG. iOS mengabaikan SVG, dan alpha akan
+           diisi hitam saat di-composite, jadi ikonnya dibuat 180x180 opaque. -->
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
     <!-- Structured data -->
     <script type="application/ld+json">
