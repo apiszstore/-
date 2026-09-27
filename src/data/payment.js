@@ -18,10 +18,15 @@
  *  R3  Rasio       : 1:1 (persegi). Width harus sama dengan height.
  *                    Logoodi oblong akan terlihat kecil di kotak 56x56.
  *  R4  Ukuran      : 200 x 200 px. Maximum 400 x 400 px.
- *  R5  Format      : PNG dengan background transparan, atau SVG.
+ *  R5  Format      : PNG atau WebP dengan background transparan, atau SVG.
  *                    Jangan JPG: latar putihnya akan terlihat kotak.
+ *                    WebP paling hemat untuk logo berbayar, dan didukung
+ *                    semua browser yang dipakai visitors.
  *  R6  Berat file  : maksimal 30 KB per logo. Di atas itu, gambar tidak
  *                    perlu sebesar ini karena sudah diperkecil ke 56px.
+ *                    Logo asli dari sumber resmi biasanya berukuran 980px
+ *                    dan berukuran ratusan KB. Dikecilkan ke 200px, hasilnya
+ *                    jadi belasan KB dan tampilannya tetap sama.
  *  R7  Padding     : beri ruang kosong di sekeliling logo, jangan sampai
  *                    logonya menempel tepi. Logo yang menyentuh tepi terlihat
  *                    terpotong begitu diperkecil.
@@ -52,14 +57,14 @@ export const paymentMethods = [
   {
     id: 'dana',
     name: 'DANA',
-    logo: '/payment/dana.png',
+      logo: '/payment/dana.webp',
     /** Dipakai sebagai alt dan teks cadangan kalau logo gagal dimuat. */
     fallback: 'DANA',
   },
   {
     id: 'gopay',
     name: 'GoPay',
-    logo: '/payment/gopay.png',
+      logo: '/payment/gopay.webp',
     fallback: 'GoPay',
   },
   {

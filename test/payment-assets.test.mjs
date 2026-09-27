@@ -46,8 +46,52 @@ function svgSize(file) {
 function sizeOf(file) {
   const extension = file.toLowerCase();
   if (extension.endsWith('.svg')) return svgSize(file);
+  if (extension.endsWith('.webp')) return webpSize(file);
   if (extension.endsWith('.png')) return pngSize(file);
   return null;
+}
+
+/**
+ * Ambil dimensi WebP dari header RIFF. Formatnya punya beberapa varian
+ * chunk, jadi semuanya harus ditangani: VP8X (extended, bisaanimated),
+ * VP8 (lossy), dan VP8L (lossless).
+ */
+function webpSize(file) {
+  const buf = readFileSync(file);
+  if (buf.toString('ascii', 0, 4) !== 'RIFF' || buf.toString('ascii', 8, 12) !== 'WEBP') return null;
+
+  let offset = 12;
+  while (offset + 8 <= buf.length) {
+    const fourcc = buf.toString('ascii', offset, offset + 4);
+    const size = buf.readUInt32LE(offset + 4);
+    const data = offset + 8;
+
+    if (fourcc === 'VP8X') {
+      return {
+        width: 1 + (buf[data + 4] | (buf[data + 5] << 8) | (buf[data + 6] << 16)),
+        height: 1 + (buf[data + 7] | (buf[data + 8] << 8) | (buf[data + 9] << 16)),
+      };
+    }
+    if (fourcc === 'VP8 ' && buf[data + 3] === 0x9d && buf[data + 4] === 0x01 && buf[data + 5] === 0x2a) {
+      return { width: buf.readUInt16LE(data + 6) & 0x3fff, height: buf.readUInt16LE(data + 8) & 0x3fff };
+    }
+    if (fourcc === 'VP8L') {
+      const bits = buf.readUInt32LE(data + 1);
+      return { width: (bits & 0x3fff) + 1, height: ((bits >> 14) & 0x3fff) + 1 };
+    }
+
+    offset = data + size + (size % 2);
+  }
+  return null;
+}
+
+/** Signature magic per format, untuk memastikan ekstensi tidak berbohong. */
+function magicOf(file) {
+  const buf = readFileSync(file);
+  if (buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'webp';
+  if (buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'png';
+  if (/<svg[\s>]/i.test(buf.toString('utf8', 0, 400))) return 'svg';
+  return 'tidak dikenal';
 }
 
 const toDiskPath = (logo) => join(PUBLIC_DIR, logo.replace(/^\//, ''));
@@ -61,7 +105,7 @@ test('R2  nama file logo sama persis dengan id method', () => {
     assert.equal(
       stemOf(method.logo),
       method.id,
-      `"${method.id}" menunjuk file "${fileNameOf(method.logo)}", harusnya "${method.id}.png"`,
+      `"${method.id}" menunjuk file "${fileNameOf(method.logo)}", harusnya "${method.id}" plus ekstensi yang sah`,
     );
   }
 });
@@ -69,7 +113,11 @@ test('R2  nama file logo sama persis dengan id method', () => {
 test('R2  nama file hanya huruf kecil tanpa spasi', () => {
   for (const method of paymentMethods) {
     const name = fileNameOf(method.logo);
-    assert.match(name, /^[a-z0-9][a-z0-9-]*\.(png|svg)$/, `nama file "${name}" tidak sesuai pola`);
+    assert.match(
+      name,
+      /^[a-z0-9][a-z0-9-]*\.(png|webp|svg)$/,
+      `nama file "${name}" tidak sesuai pola`,
+    );
   }
 });
 
@@ -82,7 +130,11 @@ test('R10 id tiap method unik', () => {
 
 test('R1  semua logo berada di folder public/payment', () => {
   for (const method of paymentMethods) {
-    assert.match(method.logo, /^\/payment\/[a-z0-9-]+\.(png|svg)$/, `"${method.logo}" di luar folder payment`);
+    assert.match(
+      method.logo,
+      /^\/payment\/[a-z0-9-]+\.(png|webp|svg)$/,
+      `"${method.logo}" di luar folder payment`,
+    );
   }
 });
 
@@ -110,8 +162,22 @@ test('R3 R4 R5 R6  logo yang ada di public/payment/ ikut semua rules', () => {
     present.push(method.id);
 
     const extension = fileNameOf(method.logo).toLowerCase();
-    assert.ok(extension.endsWith('.png') || extension.endsWith('.svg'), `${fileNameOf(method.logo)} bukan png/svg`);
+    assert.ok(
+      extension.endsWith('.png') || extension.endsWith('.webp') || extension.endsWith('.svg'),
+      `${fileNameOf(method.logo)} bukan png/webp/svg`,
+    );
     assert.ok(!extension.endsWith('.jpg') && !extension.endsWith('.jpeg'), 'R5: jangan pakai JPG, latarnya akan terlihat kotak');
+
+    // Ekstensi harus jujur dengan isi filenya. Kalau ada file PNG yang
+    // disimpan sebagai .webp, browser tetap menampilkannya, tapi test
+    // dimensi akan salah membaca header dan menolocalkan file ini dengan
+    // bahasa yang salah.
+    const expected = extension.split('.').pop();
+    assert.equal(
+      magicOf(file),
+      expected,
+      `R5: ${fileNameOf(method.logo)} ekstensinya .${expected} tapi isi filenya bukan ${expected}`,
+    );
 
     const size = sizeOf(file);
     assert.ok(size, `dimensi ${fileNameOf(method.logo)} tidak bisa dibaca`);
