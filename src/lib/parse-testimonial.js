@@ -113,7 +113,7 @@ function stripQuotes(text) {
  * di awal nilai, sehingga tanpa cleaned di sini nilai tampil sebagai
  * "** Rp16.000" dan bukan "Rp16.000".
  */
-function clean(raw) {
+export function clean(raw) {
   const stripped = stripQuotes(
     String(raw ?? '')
       .replace(/```/g, '')

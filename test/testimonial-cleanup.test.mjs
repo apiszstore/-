@@ -70,6 +70,28 @@ test('embed asli bot: invoice tidak pernah ikut', () => {
   assert.equal(JSON.stringify(t).includes('INV-20260917'), false);
 });
 
+test('global name dari Discord juga dibersihkan dari glif dekoratif', () => {
+  // Regresi nyata di produksi: kartu tetap menampilkan "MATEO_DEGUERRA"
+  // padahal parser sudah membersihkannya, karena name berasal dari
+  // global_name Discord yang tidak melewati clean(). Test sebelumnya memakai
+  // nama bersih sehingga bug ini tidak tertangkap.
+  const parsed = [parseMessage(pesanAsli)];
+  const filled = applyIdentities(parsed, new Map([
+    ['1368863471659122740', { username: 'albertdaridesa_04469', globalName: '\u{1D408}\u{1D402} MATEO_DEGUERRA' }],
+  ]));
+
+  assert.equal(filled[0].name, 'MATEO_DEGUERRA');
+  assert.equal(/[\u{1d400}-\u{1d7ff}]/u.test(filled[0].name), false);
+  assert.equal(filled[0].username, '@albertdaridesa_04469');
+});
+
+test('username dari Discord juga dibersihkan', () => {
+  const filled = applyIdentities([parseMessage(pesanAsli)], new Map([
+    ['1368863471659122740', { username: '\u{1D41A}aldo', globalName: null }],
+  ]));
+  assert.equal(filled[0].username, '@aldo');
+});
+
 test('mention di-resolve jadi username asli', () => {
   const parsed = [parseMessage(pesanAsli)];
   const filled = applyIdentities(parsed, new Map([

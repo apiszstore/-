@@ -7,7 +7,7 @@
  * environment Vercel.
  */
 
-import { dedupe, parseMessage, sortTestimonials } from './parse-testimonial.js';
+import { clean as cleanText, dedupe, parseMessage, sortTestimonials } from './parse-testimonial.js';
 
 const API = 'https://discord.com/api/v10';
 const PAGE_SIZE = 100;
@@ -101,10 +101,19 @@ export function applyIdentities(testimonials, users) {
     }
     return {
       ...item,
-      name: user.globalName || user.username,
-      username: `@${user.username}`,
+      name: cleanText(user.globalName) || cleanText(user.username),
+      username: cleanText(user.username) ? `@${cleanText(user.username)}` : null,
     };
   });
+}
+
+/**
+ * Buang field internal sebelum dikirim ke browser.
+ * `userId` hanya dibutuhkan untuk resolve mention, tidak ada gunanya di sisi
+ * klien, jadi jangan ikut keluar.
+ */
+function toPublic(list) {
+  return list.map(({ userId, ...rest }) => rest);
 }
 
 /**
@@ -164,7 +173,7 @@ export async function fetchTestimonials({ token, channelId, limit = 12, maxPages
   const users = await resolveUsers(testimonials.map((item) => item.userId), token);
 
   return {
-    testimonials: applyIdentities(testimonials, users),
+    testimonials: toPublic(applyIdentities(testimonials, users)),
     scanned,
     pages,
     truncated,
