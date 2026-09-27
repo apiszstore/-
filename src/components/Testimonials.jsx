@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { testimonials as fallbackTestimonials } from '../data/testimonials.js';
-import { TestimonialGrid, useTestimonials } from './TestimonialCard.jsx';
+import { useTestimonials } from './TestimonialCard.jsx';
+import TestimonialCarousel from './TestimonialCarousel.jsx';
 import Icon from './Icon.jsx';
 import Reveal from './Reveal.jsx';
 import Section from './Section.jsx';
@@ -52,7 +53,7 @@ export default function Testimonials() {
         {loading ? <TestimonialSkeleton /> : null}
 
         <Reveal className="min-w-0">
-          <TestimonialGrid testimonials={items} />
+          <TestimonialCarousel testimonials={items} />
         </Reveal>
 
         {emptyFromDiscord ? <EmptyNotice /> : null}
