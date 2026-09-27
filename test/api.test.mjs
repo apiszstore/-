@@ -178,6 +178,25 @@ test('handler: spasi/newline di env tetap diterima karena sudah di-trim', async 
   assert.equal(res.statusCode, 200);
 });
 
+test('handler 200 tapi array kosong saat semua testimoni dihapus di Discord', async () => {
+  // Kontrak yang diandalkan komponen: "terhubung tapi belum ada data" harus
+  // dibedakan dari "endpoint gagal". Komponen memakai testimonials.length === 0
+  // bersama flag connected untuk menampilkan empty state, bukan kartu Demo.
+  const asli = globalThis.fetch;
+  globalThis.fetch = async () => ({ status: 200, ok: true, json: async () => [] });
+  process.env.DISCORD_BOT_TOKEN = TOKEN;
+  process.env.DISCORD_CHANNEL_ID = '1545657570549829662';
+
+  const res = makeRes();
+  await handler({ method: 'GET', query: {} }, res);
+  globalThis.fetch = asli;
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body.testimonials, []);
+  assert.equal(res.body.count, 0);
+  assert.equal(res.body.source, 'discord');
+});
+
 test('handler 200: payload bersih, invoice tidak ada, token tidak bocor', async () => {
   const original = globalThis.fetch;
   globalThis.fetch = mockDiscord([

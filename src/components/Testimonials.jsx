@@ -19,12 +19,19 @@ export default function Testimonials() {
   // pollMs bikin testimoni baru dari Discord muncul tanpa perlu refresh.
   // Nilainya purposely sedikit lebih besar dari s-maxage=60 di API supaya
   // request kedua biasanya dilayani cache Vercel, bukan memanggil Discord lagi.
-  const { testimonials, loading, error } = useTestimonials({
+  const { testimonials, loading, error, connected } = useTestimonials({
     limit: 12,
     pollMs: 90_000,
   });
+
   const fromDiscord = testimonials.length > 0;
-  const items = fromDiscord ? testimonials : fallbackTestimonials;
+
+  // Endpoint sehat tapi belum ada data = semua testimoni di Discord dihapus.
+  // Kasus itu TIDAK boleh diisi kartu Demo, karena data Discord-nya nyata
+  // (connected true) sedangkan badge "Demo" berarti review karangan.
+  const emptyFromDiscord = connected && !fromDiscord && !error;
+  const showDemo = !fromDiscord && !emptyFromDiscord;
+  const items = fromDiscord ? testimonials : showDemo ? fallbackTestimonials : [];
 
   return (
     <Section id="testimonials" tone="base">
@@ -34,7 +41,9 @@ export default function Testimonials() {
         subtitle={
           fromDiscord
             ? 'Review dari customer yang pernah memakai layanan kami.'
-            : 'Kartu di bawah ini masih contoh tampilan, bukan review asli.'
+            : emptyFromDiscord
+              ? 'Belum ada testimoni yang dipublikasikan di channel Discord kami.'
+              : 'Kartu di bawah ini masih contoh tampilan, bukan review asli.'
         }
         align="center"
       />
@@ -46,7 +55,8 @@ export default function Testimonials() {
           <TestimonialGrid testimonials={items} />
         </Reveal>
 
-        {!fromDiscord && !loading ? <DiscordNotice error={error} /> : null}
+        {emptyFromDiscord ? <EmptyNotice /> : null}
+        {showDemo && !loading ? <DiscordNotice error={error} /> : null}
       </div>
 
       <Reveal delay={120} className="mt-5 h-full">
@@ -87,6 +97,20 @@ function DiscordNotice({ error }) {
       {error
         ? 'Testimoni dari Discord belum bisa dimuat. Menampilkan contoh tampilan.'
         : 'Testimoni dari Discord akan muncul di sini setelah channel terhubung.'}
+    </p>
+  );
+}
+
+/**
+ * Channel Discord terhubung tapi belum punya embed testimoni - misalnya semua
+ * review lama dihapus dari Discord. Menampilkan kartu Demo di sini akan
+ * menyesatkan karena terlihat seperti review asli, jadi cukup tampil kosong.
+ */
+function EmptyNotice() {
+  return (
+    <p className="mt-4 text-center text-[12px] text-faint">
+      Belum ada testimoni yang dipublikasikan. Review baru akan muncul otomatis
+      begitu bot mengirimkannya ke channel Discord.
     </p>
   );
 }

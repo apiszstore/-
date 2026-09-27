@@ -140,7 +140,7 @@ export function TestimonialGrid({ testimonials, columns = 'auto' }) {
  * request ulang berkala ke endpoint yang sudah di-cache CDN.
  */
 export function useTestimonials({ limit = 12, pollMs = 0, endpoint = '/api/testimonials' } = {}) {
-  const [state, setState] = useState({ testimonials: [], loading: true, error: null });
+  const [state, setState] = useState({ testimonials: [], loading: true, error: null, connected: false });
   const timer = useRef(null);
 
   useEffect(() => {
@@ -152,10 +152,13 @@ export function useTestimonials({ limit = 12, pollMs = 0, endpoint = '/api/testi
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         if (!alive) return;
-        setState({ testimonials: data.testimonials ?? [], loading: false, error: null });
+        // `connected` membedakan "endpoint sehat tapi belum ada data" dari
+        // "endpoint gagal". Tanpa itu, channel yang sudah terhubung tapi
+        // kosong akan disalin-basahkan dengan pesan "belum terhubung".
+        setState({ testimonials: data.testimonials ?? [], loading: false, error: null, connected: true });
       } catch (error) {
         if (!alive) return;
-        setState((prev) => ({ ...prev, loading: false, error }));
+        setState((prev) => ({ ...prev, loading: false, error, connected: false }));
       }
     }
 
